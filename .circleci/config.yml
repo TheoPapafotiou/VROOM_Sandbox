@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Run Unit tests
           command: |
-            sleep(5)
+            sleep 5
             cd ~/new_infrastructure/VROOM_Sandbox/tests/Lane_keeping
             pytest
       
