@@ -6,7 +6,8 @@ executors:
   vroom_tester:
     docker:
       # - image: cimg/base:stable
-      - image: circleci/python:3.7.4 
+      - image: circleci/python:3.7.4
+    working_directory: ~/new_infrastructure
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -38,12 +39,12 @@ jobs:
           name: Install Python Dependencies
           command: |
             sudo -H pip3 install --upgrade pip
-            sudo pip3 install -r ~/VROOM_Sandbox/tests/requirements.txt
+            sudo pip3 install -r ~/new_infrastructure/VROOM_Sandbox/tests/requirements.txt
       - run:
           name: Run Unit tests
           command: |
             sleep(5)
-            cd ~/VROOM_Sandbox/tests/Lane_keeping
+            cd ~/new_infrastructure/VROOM_Sandbox/tests/Lane_keeping
             pytest
       
 
