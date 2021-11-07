@@ -30,6 +30,13 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check Path
+          command: |
+            import sys
+            print(sys.path)
+            cd ~/VROOM_Sandbox/tests/
+            ls
+      - run:
           name: Install Python Dependencies
           command: |
             sudo -H pip3 install --upgrade pip
