@@ -32,10 +32,7 @@ jobs:
       - run:
           name: Check Path
           command: |
-            import sys
-            print(sys.path)
             cd ~/VROOM_Sandbox/tests/
-            ls
       - run:
           name: Install Python Dependencies
           command: |
