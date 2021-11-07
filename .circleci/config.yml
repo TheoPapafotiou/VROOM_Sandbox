@@ -33,6 +33,7 @@ jobs:
           name: Install VROOM_Sandbox
           command: |
             git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/TheoPapafotiou/VROOM_Sandbox
+            cd VROOM_Sandbox
       - run:
           name: Install Python Dependencies
           command: |
