@@ -30,14 +30,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Check Path
+          name: Install VROOM_Sandbox
           command: |
-            cd ~/VROOM_Sandbox/tests/
+            git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/TheoPapafotiou/VROOM_Sandbox
       - run:
           name: Install Python Dependencies
           command: |
             sudo -H pip3 install --upgrade pip
-            sudo pip3 install -r requirements.txt
+            sudo pip3 install -r ~/VROOM_Sandbox/tests/requirements.txt
       - run:
           name: Run Unit tests
           command: |
