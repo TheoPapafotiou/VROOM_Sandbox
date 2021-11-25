@@ -55,3 +55,7 @@ workflows:
     jobs:
       # - say-hello
       - build_and_test
+            filters:
+              branches:
+                only:
+                  - main
