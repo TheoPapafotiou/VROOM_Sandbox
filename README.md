@@ -1,6 +1,4 @@
 # VROOM_Sandbox
-This is a repository for all testing files developed by student team VROOM in Aristotle University of Thessaloniki.. 
 
-Hello from Evi
+A branch for getting started with lane detection
 
-test 2
