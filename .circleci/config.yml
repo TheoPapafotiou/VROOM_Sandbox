@@ -25,28 +25,32 @@ jobs:
   #         command: "echo Hello, World!"
   #     - store_test_results:
   #         path: test_results
-  main:
-    build_and_test:
-      executor: vroom_tester
-      steps:
-        - checkout
-        - run:
-            name: Install VROOM_Sandbox
-            command: |
-              git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/TheoPapafotiou/VROOM_Sandbox
-              cd VROOM_Sandbox
-        - run:
-            name: Install Python Dependencies
-            command: |
-              sudo -H pip3 install --upgrade pip
-              sudo pip3 install -r ~/new_infrastructure/VROOM_Sandbox/tests/requirements.txt
-        - run:
-            name: Run Unit tests
-            command: |
-              sleep 5
-              cd ~/new_infrastructure/VROOM_Sandbox/tests/Lane_keeping
-              pytest
+
+build_and_test:
+executor: vroom_tester
+steps:
+- checkout
+- run:
+    name: Install VROOM_Sandbox
+    command: |
+      git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/TheoPapafotiou/VROOM_Sandbox
+      cd VROOM_Sandbox
+- run:
+    name: Install Python Dependencies
+    command: |
+      sudo -H pip3 install --upgrade pip
+      sudo pip3 install -r ~/new_infrastructure/VROOM_Sandbox/tests/requirements.txt
+- run:
+    name: Run Unit tests
+    command: |
+      sleep 5
+      cd ~/new_infrastructure/VROOM_Sandbox/tests/Lane_keeping
+      pytest
       
+filters:
+     branches:
+       only:
+         - main
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
