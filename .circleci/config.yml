@@ -29,7 +29,6 @@ jobs:
       - run:
           name: Run Unit tests
           command: |
-            sleep 5
             cd ~/new_infrastructure/VROOM_Sandbox/tests/Lane_keeping
             pytest
           
@@ -42,6 +41,6 @@ filters:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  init-test-workflow:
     jobs:
       - build_and_test
