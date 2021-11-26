@@ -1,7 +1,7 @@
 import unittest
 import cv2
 
-from lane_keeping import LaneKeeping
+from src.lane_keeping import LaneKeeping
 
 class TestLaneKeeping(unittest.TestCase):
     def setUp(self):
