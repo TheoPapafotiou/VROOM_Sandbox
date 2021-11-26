@@ -1,7 +1,10 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import unittest
 import cv2
 
-from src.lane_keeping import LaneKeeping
+from ...src.lane_keeping import LaneKeeping
 
 class TestLaneKeeping(unittest.TestCase):
     def setUp(self):
