@@ -225,11 +225,13 @@ class Mask:
 
 # testtt
 
-image = cv2.imread("testdiko.jpg")
-dims = image.shape
-image_np = np.copy(image)
-gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-m = Mask(image, "mask_test29")
+# image = cv2.imread("test.png")
+# dims = image.shape
+# image_np = np.copy(image)
+# gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# m = Mask(image, "mask_test30")
+
 # m.point_finding(image)
 # m.add_polygon_mask(m.polymask1)
 # m.add_circle_mask(m.circle1)
@@ -237,11 +239,11 @@ m = Mask(image, "mask_test29")
 # m.add_polygon_ui(sample_image=image)
 # m.add_circle(sample_img=image)
 # m.easy_setup(sample_img=image)
-masked = m.apply_mask(image)
+# masked = m.apply_mask(image)
 # masked = m.apply_to_img(gray_img)
 # cv2.imshow("test", image)
 # cv2.waitKey()
-cv2.imshow("test", masked)
-cv2.waitKey()
+# cv2.imshow("test", masked)
+# cv2.waitKey()
 # plt.show()
 # print("test")
