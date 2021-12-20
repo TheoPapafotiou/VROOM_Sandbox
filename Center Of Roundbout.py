@@ -60,23 +60,18 @@ class CenterOfRoundanout():
         closestCenter = 0
         x = self.centers[0][0]
         y = self.centers[0][1]
-        smallestDistance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2))
+        smallestDistance = math.sqrt(abs((self.height - y) ** 2 + (0 - x) ** 2))
 
         for index, center in enumerate(self.centers[1:]):
             x = center[0]
             y = center[1]
 
-            if (x + y) > (self.height):
-                distance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2)) #abs((y  - self.height) + x)
-            else:
-                distance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2))#abs((y  - self.height) + x)
+            distance = math.sqrt((self.height - y) ** 2 + (0 - x) ** 2) #abs((y  - self.height) + x)
 
-            print(distance)    
-
-
+            print("Number {}: x is {}, y is {} and the distance is {}".format(index, x, y, distance))    
             
             if distance < smallestDistance:
-                closestCenter = index
+                closestCenter = index + 1
                 smallestDistance = distance
 
         self.image = cv2.circle(self.image, self.centers[closestCenter], radius=0, color=(20, 255, 80), thickness= 7)        
@@ -115,5 +110,5 @@ class CenterOfRoundanout():
 
 
 
-image = CenterOfRoundanout(cv2.imread('frame2.png'))     
-image.incompleteCircle()
+image = CenterOfRoundanout(cv2.imread('frame.png'))     
+image.centerOfRoundabout()
