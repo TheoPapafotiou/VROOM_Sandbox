@@ -2,14 +2,17 @@ import cv2
 from matplotlib import image 
 import matplotlib.pyplot as pl
 import numpy as np 
-
+import math
 
 class CenterOfRoundanout():
     def __init__(self, image):
         self.image = image 
+        self.width = image.shape[0]
+        self.height = image.shape[1]
         self.thresh = None
         self.contours = None
         self.centers = None
+        self.finalCenter = None
 
     
     def preprocessing(self):
@@ -48,6 +51,35 @@ class CenterOfRoundanout():
          #points =  get_contour_centers(contours)    
         for center in self.centers:
              self.image = cv2.circle(self.image, center, radius=0, color=(0, 0, 255), thickness= 5)    
+            
+
+
+    def findTheCenter(self):
+        self.finalCenter = self.centers[0]
+      
+        closestCenter = 0
+        x = self.centers[0][0]
+        y = self.centers[0][1]
+        smallestDistance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2))
+
+        for index, center in enumerate(self.centers[1:]):
+            x = center[0]
+            y = center[1]
+
+            if (x + y) > (self.height):
+                distance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2)) #abs((y  - self.height) + x)
+            else:
+                distance = math.sqrt(abs((self.height - y) ^ 2 + (0 - x) ^ 2))#abs((y  - self.height) + x)
+
+            print(distance)    
+
+
+            
+            if distance < smallestDistance:
+                closestCenter = index
+                smallestDistance = distance
+
+        self.image = cv2.circle(self.image, self.centers[closestCenter], radius=0, color=(20, 255, 80), thickness= 7)        
 
 
     def centerOfRoundabout(self):
@@ -55,12 +87,33 @@ class CenterOfRoundanout():
         self.findAndDrawContours()
         self.get_contour_centers()
         self.drawPoints()
+        self.findTheCenter()
         # Show the image. Print any button to quit
         
         pl.imshow(self.image)
         pl.show()
-        cv2.waitKey(0)
-        
-image = CenterOfRoundanout(cv2.imread('frame.png'))     
-image.centerOfRoundabout()
+        cv2.waitKey(0)        
 
+    def incompleteCircle(self):
+        out = self.image.copy()
+        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+        msk = cv2.inRange(hsv, np.array([0, 0, 0]), np.array([15, 15, 15]))
+        crc = cv2.HoughCircles(msk, cv2.HOUGH_GRADIENT, 0.5, 0.1, param1=50, param2=25, minRadius=0, maxRadius=0)
+
+        # Ensure circles were found
+        if crc is not None:
+           crc = np.round(crc[0, :]).astype("int")
+
+        # For each (x, y) coordinates and radius of the circles
+           for (x, y, r) in crc:
+               cv2.circle(out, (x, y), r, (0, 255, 0), 4)
+               print("x:{}, y:{}".format(x, y))
+        
+        cv2.imshow("out", out)
+        cv2.waitKey(0)
+
+
+
+
+image = CenterOfRoundanout(cv2.imread('frame2.png'))     
+image.incompleteCircle()
