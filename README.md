@@ -1,9 +1,9 @@
 # VROOM_Sandbox
 
-$$ Navigation Intersection 
+# Navigation Intersection 
 
 
-$ intersection_nav.py 
+* intersection_nav.py 
 
 this file it is just a test 
 the files related to this file are: 
@@ -11,7 +11,7 @@ the files related to this file are:
 -lanes.png
 -lineDetection2.png
 
-$ masksForIntersection.py
+* masksForIntersection.py
 
 This file contains the masks for each case/path the car follows
 
@@ -31,6 +31,6 @@ This file contains the masks for each case/path the car follows
     - it contains the files:
     ... (to be completed)
 
-$ intersection.py
+* intersection.py
 
 the main code -> just the logic (to be completed)
