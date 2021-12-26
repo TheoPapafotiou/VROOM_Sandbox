@@ -104,8 +104,22 @@ class CenterOfRoundanout():
                   value = [self.image_copy[y_closest][x]]
                   if value[0][0] > 200 and value [0][1] > 200 and value [0][2] > 200:
                       self.image = cv2.circle(self.image, [x, y_closest], radius=0, color=GREEN, thickness= 8)  
-                      cv2.line(self.image_copy, (0, 794), (x, y_closest), WHITE, thickness=7)
+                      cv2.line(self.image_copy, (0, 794), (x, y_closest), WHITE, thickness=7) ### Here is hardcoded. Needs to be fixed
                       break
+
+    
+    def findTheAngle(self):
+        # Save the coordinates of the closest center
+        x_closest = self.centers[self.closestCenter][0]
+        y_closest = self.centers[self.closestCenter][1]
+        y =  794 - y_closest
+        x = x_closest
+
+        AB = y
+        BC = x
+        AC = math.sqrt(AB ** 2 + BC **2)
+        print("The angle is {}".format(math.degrees(math.atan(BC / AB)))) 
+
 
 
     def centerOfRoundabout(self):
@@ -115,6 +129,7 @@ class CenterOfRoundanout():
         self.drawPoints()
         self.findTheCenter()
         self.findTheLine()
+        self.findTheAngle()
         
         # Show the image. Print any button to quit
         pl.imshow(self.image)
@@ -122,5 +137,5 @@ class CenterOfRoundanout():
         cv2.waitKey(0)        
   
 
-image = CenterOfRoundanout(cv2.imread('frame2.png'))     
+image = CenterOfRoundanout(cv2.imread('frame3.png'))     
 image.centerOfRoundabout()
