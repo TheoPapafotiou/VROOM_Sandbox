@@ -6,6 +6,12 @@ import math
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 
+# Initialazing some colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (20, 255, 80)
+BLUE = (0, 0, 255)
+
 
 class CenterOfRoundanout():
     def __init__(self, image):
@@ -21,6 +27,7 @@ class CenterOfRoundanout():
 
     
     def preprocessing(self):
+        """Saving an image copy and making the proper preprocessing"""
         # Saving a copy and converting it to RGB
         self.image_copy = self.image.copy()
         self.image_copy = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
@@ -35,16 +42,17 @@ class CenterOfRoundanout():
 
     
     def findAndDrawContours(self):
-    
+        """Finding all the kind of contrours """
         # find the contours from the thresholded image
         contours, hierarchy = cv2.findContours(self.thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         # draw all contours
         self.image = cv2.cvtColor(self.image, cv2.COLOR_GRAY2BGR)
-        self.image = cv2.drawContours(self.image, contours, -1, (255, 0, 0), 1)
+        self.image = cv2.drawContours(self.image, contours, -1, RED, 1)
         self.contours = contours
 
 
     def get_contour_centers(self): 
+        """Finding all the possible centers of all possible contours"""
     
         # ((x, y), radius) = cv2.minEnclosingCircle(c)
         centers = np.zeros((len(self.contours), 2), dtype=np.int16)
@@ -56,13 +64,14 @@ class CenterOfRoundanout():
     
 
     def drawPoints(self):    
-
-         #points =  get_contour_centers(contours)    
+        """Drawing all the possible center with small dots"""
+             
         for center in self.centers:
-             self.image = cv2.circle(self.image, center, radius=0, color=(0, 0, 255), thickness= 5)    
+             self.image = cv2.circle(self.image, center, radius=0, color=BLUE, thickness= 5)    
             
 
     def findTheCenter(self):
+        """Finding the closest center to the left bottom point of the image"""
         self.finalCenter = self.centers[0]
       
         self.closestCenter = 0
@@ -74,39 +83,30 @@ class CenterOfRoundanout():
             x = center[0]
             y = center[1]
 
-            distance = math.sqrt((self.height - y) ** 2 + (0 - x) ** 2) #abs((y  - self.height) + x))    
+            distance = math.sqrt((self.height - y) ** 2 + (0 - x) ** 2)     
             
             if distance < smallestDistance:
                 self.closestCenter = index + 1
                 smallestDistance = distance
 
-        self.image = cv2.circle(self.image, self.centers[self.closestCenter], radius=0, color=(20, 255, 80), thickness= 7)       
+        self.image = cv2.circle(self.image, self.centers[self.closestCenter], radius=0, color=GREEN, thickness= 7)       
 
     def findTheLine(self):
+          """Find the point that we will connect our created line"""
 
           if self.closestCenter:
               
               # Save the coordinates of the closest center
               x_closest = self.centers[self.closestCenter][0]
               y_closest = self.centers[self.closestCenter][1]         
-
-              # Initializing some flags
-              PREVIOUS_WHITE = False
-              NEXT_WHITE = False     
-             
+                 
               for x in range(x_closest, self.image_copy.shape[1] - 1):
                   value = [self.image_copy[y_closest][x]]
                   if value[0][0] > 200 and value [0][1] > 200 and value [0][2] > 200:
-                      PREVIOUS_WHITE = True
-                      self.image = cv2.circle(self.image, [x, y_closest], radius=0, color=(100, 255, 60), thickness= 8)   
+                      self.image = cv2.circle(self.image, [x, y_closest], radius=0, color=GREEN, thickness= 8)  
+                      cv2.line(self.image_copy, (0, 794), (x, y_closest), WHITE, thickness=7)
+                      break
 
-                  if PREVIOUS_WHITE:
-                      if value[0][0] < 200 and value [0][1] < 200 and value [0][2] < 200:
-                            cv2.line(self.image, (0, 0), (x, y_closest), (255, 0, 0), thickness=7)
-                            break 
-
-
-                      
 
     def centerOfRoundabout(self):
         self.preprocessing()
@@ -115,33 +115,12 @@ class CenterOfRoundanout():
         self.drawPoints()
         self.findTheCenter()
         self.findTheLine()
-        # Show the image. Print any button to quit
         
+        # Show the image. Print any button to quit
         pl.imshow(self.image)
         pl.show()
         cv2.waitKey(0)        
   
 
-    #def incompleteCircle(self):  ## Redurant 
-     #   out = self.image.copy()
-     #   hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
-     #   msk = cv2.inRange(hsv, np.array([0, 0, 0]), np.array([15, 15, 15]))
-     #   crc = cv2.HoughCircles(msk, cv2.HOUGH_GRADIENT, 0.5, 0.1, param1=50, param2=25, minRadius=0, maxRadius=0)
-
-        # Ensure circles were found
-     #   if crc is not None:
-     #      crc = np.round(crc[0, :]).astype("int")
-
-        # For each (x, y) coordinates and radius of the circles
-     #      for (x, y, r) in crc:
-     #          cv2.circle(out, (x, y), r, (0, 255, 0), 4)
-     #          print("x:{}, y:{}".format(x, y))
-        
-     #   cv2.imshow("out", out)
-     #   cv2.waitKey(0)
-
-
-
-
-image = CenterOfRoundanout(cv2.imread('frame.png'))     
+image = CenterOfRoundanout(cv2.imread('frame2.png'))     
 image.centerOfRoundabout()
