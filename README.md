@@ -21,7 +21,7 @@ This file contains the masks for each case/path the car follows
     straight_simulation.mp4, video from the simulation
     intersection_straight.mp4, video from realife
 
-- Small rigth turn 
+- Small right turn 
     - it contains the following files:
     rsmallj.png, where j is from 0 to 6,
     rsmal_simulation.mp4, video taken from simulation
