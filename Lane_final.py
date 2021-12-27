@@ -419,7 +419,7 @@ class Lane_detection:
                 cv2.imshow("lines", combined_image)
                 if wait:
                     cv2.waitKey()
-        finally:
+        except:
             cv2.imshow("lines", img)
             if wait:
                 cv2.waitKey()
@@ -472,7 +472,7 @@ class Lane_detection:
     def detect_horizontal(self, image):
         detected = []
         det_bool = False
-        detection_dist_intensity = -1 # 1 to 3 metric of how close is the detected line
+        detection_dist_intensity = -1  # 1 to 3 metric of how close is the detected line
         for line in self.lines:
             # print(line)
             # self.calculate_line_slope(line)
@@ -490,7 +490,7 @@ class Lane_detection:
                 avg = np.average(d[0], axis=0)
                 if avg >= self.height / 3:
                     detection_dist_intensity = 1
-                elif avg < self.height / 3 and avg >=2* self.height / 3:
+                elif self.height / 3 > avg >= 2 * self.height / 3:
                     detection_dist_intensity = 2
                 else:
                     detection_dist_intensity = 3
@@ -498,7 +498,6 @@ class Lane_detection:
         return np.array(detected), det_bool, detection_dist_intensity
 
 
-lk = Lane_detection("test_videos/vlc-record1.mp4")
+lk = Lane_detection("test_videos/vlc-record1_trimed.mp4")
 
 lk.detect2()
-
