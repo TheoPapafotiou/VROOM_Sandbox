@@ -8,6 +8,7 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
+import time
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
@@ -66,10 +67,12 @@ try:
             images = np.hstack((color_image, depth_colormap))
 
         # Show images
-        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('RealSense', images)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+        # cv2.imshow('RealSense', images)
+        cv2.imwrite('RealSense.jpg', images)
+        break
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
 
 finally:
 
