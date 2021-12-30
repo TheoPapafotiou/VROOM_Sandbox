@@ -225,6 +225,8 @@ class Mask:
 
 
 # testtt
+##### COMMENT ALL TO USE TO OTHER CLASSES
+"""
 cap = cv2.VideoCapture("real_tests_picam/straight_line.mp4")
 ret, frame = cap.read()
 # image = cv2.imread("test.png")
@@ -234,7 +236,7 @@ ret, frame = cap.read()
 
 m = Mask(frame, "py_test.json")
 
-# m.point_finding(frame, with_mask=False)
+m.point_finding(frame, with_mask=False)
 # m.add_polygon_mask(m.polymask1)
 # m.add_circle_mask(m.circle1)
 # m.set_polygon(150, 200, 5)
@@ -246,7 +248,8 @@ masked = m.apply_mask(frame)
 # masked = m.apply_to_img(gray_img)
 # cv2.imshow("test", image)
 # cv2.waitKey()
-cv2.imshow("test", masked)
+cv2.imshow("test", frame)
 cv2.waitKey()
 # plt.show()
 # print("test")
+"""

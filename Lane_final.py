@@ -4,6 +4,8 @@ import math
 from numpy.core.fromnumeric import size
 from numpy.lib.function_base import average
 
+from Mask import Mask
+
 
 class Lane_detection:
     right_line_points = []
@@ -20,12 +22,16 @@ class Lane_detection:
 
     lines = np.empty((1, 1, 1))
 
-    def __init__(self, vp):
+    def __init__(self, vp, use_mask_class = False, mask_filename = None):
         self.cap = cv2.VideoCapture(vp)
         self.frame_width = int(self.cap.get(3))
         self.frame_height = int(self.cap.get(4))
         ret, fframe = self.cap.read()
-        self.stencil = self.make_stencil(fframe, fframe.shape[0], fframe.shape[1])
+        if use_mask_class:
+            m = Mask(fframe, mask_filename)
+            self.stencil = m.stencil
+        else:
+            self.stencil = self.make_stencil(fframe, fframe.shape[0], fframe.shape[1])
 
     def canny(self, image):
         # Returns the processed image
@@ -139,18 +145,80 @@ class Lane_detection:
         x2 = int((y2 - intercept) / slope)
         return np.array([int(x1), int(y1), int(x2), int(y2)])
 
-    # def filter_lines(self, image_if_debug = None):
-    #     info = {}
-    #     info["found_lines"] = len(self.lines)
-    #     if self.lines is None:
-    #         return -1
-    #     kept_distances = []
-    #     for d in self.calculate_line_lenght(self.lines):
-    #
-    #     slopes = self.calculate_line_slope()
-    #
+    def filter_lines(self, slope_threshold=0.2, image_if_debug=None):
+        info = {}
+        info["found_lines"] = len(self.lines)
+        if self.lines is None:
+            return -1
+        kept_distances = []
+        lengths = self.calculate_line_lenght(self.lines)
+        avg_length = np.average(lengths)
+        info["avg_length"] = avg_length
+
+        slopes = self.calculate_line_slope(self.lines)
+        # for i in range(len(lengths)):
+        #     print(slopes[i])
+        #     self.display_lines_on_img(image_if_debug, lines=self.lines[i], wait=True)
+
+        ## direction array is an array of the same length as the lines.
+        ##  There is an 1 when the line is left, a 2 when the line is right
+        #       and 0 when the line is **perfectly** horizontal
+        direction_array = []
+
+        for s in slopes:
+            if s < 0:
+                direction_array.append(1)
+            elif s > 0:
+                direction_array.append(2)
+            else:
+                direction_array.append(0)
+
+        right_lane_slopes = []
+        left_lane_slopes = []
+        for s in slopes:
+            if s < -0.2:
+                left_lane_slopes.append(s)
+            elif s > 0.2:
+                right_lane_slopes.append(s)
+
+        avg_right_slope = np.average(np.array(right_lane_slopes))
+        avg_left_slope = np.average(np.array(left_lane_slopes))
+
+        self.moving_average_slopee(avg_right_slope, avg_left_slope)
+
+    def moving_average_slopee(self, right_slope, left_slope, moving_size=10):
+        weights = [*range(1, moving_size+1)]
+        r_weights = weights
+        l_weights = weights
+
+        if len(self.right_slope_buffer) >= moving_size:
+            self.right_slope_buffer.pop(0)
+            self.right_slope_buffer.append(right_slope)
+        else:
+            self.right_slope_buffer.append(right_slope)
+            r_weights = [*range(1, len(self.right_slope_buffer)+1)]
+
+        self.right_moving_slope = np.average(self.right_slope_buffer, weights=r_weights)
+        if len(self.left_slope_buffer) >= moving_size:
+            self.left_slope_buffer.pop(0)
+            self.left_slope_buffer.append(left_slope)
+        else:
+            self.left_slope_buffer.append(left_slope)
+            l_weights = [*range(1, len(self.left_slope_buffer) + 1)]
+        self.left_moving_slope = np.average(self.left_slope_buffer, weights=l_weights)
 
 
+
+        return self.right_moving_slope, self.left_moving_slope
+
+    def show_avg_slope_in_static_lines_for_pi_cam(self, img, wait):
+        lx1 = 11
+        ly1 = 1092
+        ly2 = 350
+        lx2 = (ly2 - ly1 - self.left_moving_slope * lx1) / self.left_moving_slope
+        left_line = [lx1, ly1, lx2, ly2]
+
+        self.display_lines_on_img(img, [left_line], wait=wait)
 
     def all_lines_found(self, lines, width, image):
         left_fit = []
@@ -427,16 +495,19 @@ class Lane_detection:
         for line in lines:
             print(line)
         try:
-            if line.size == 0:
-                raise
+
 
             for line in lines:
-                x1, y1, x2, y2 = line.reshape(4)
+                # x1, y1, x2, y2 = line.reshape(4)
+                x1, y1, x2, y2 = line
                 cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
                 combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
                 cv2.imshow("lines", combined_image)
                 if wait:
                     cv2.waitKey()
+
+            # if line.size == 0:
+            #     raise
         except:
             cv2.imshow("lines", img)
             if wait:
@@ -445,7 +516,7 @@ class Lane_detection:
     def calculate_line_lenght(self, lines):
         lengths = []
         for line in lines:
-            x1, y1, x2, y2 = line
+            x1, y1, x2, y2 = line[0]
             l = math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
             lengths.append(l)
         return np.array(lengths)
@@ -453,7 +524,7 @@ class Lane_detection:
     def calculate_line_slope(self, lines):
         slopes = []
         for line in lines:
-            x1, y1, x2, y2 = line
+            x1, y1, x2, y2 = line[0]
             s = (y2 - y1) / (x2 - x1)
             slopes.append(s)
         return np.array(slopes)
@@ -462,8 +533,8 @@ class Lane_detection:
     # ------------HORIZONTAL-LINE-DETECTION-------------#
     ####################################################
 
-    def detect2(self, min_line_length = 0,output_filename=None):
-        min_line_length = 0
+    def detect2(self, output_filename=None):
+        min_line_length = 20
         while True:
             ret, frame = self.cap.read()
 
@@ -474,16 +545,27 @@ class Lane_detection:
             warped_image = self.warp(canny_image, self.height, self.width)
             # warped_image = self.warp_nassos(canny_image, intensity=1)
             masked_image = self.apply_mask(warped_image, self.stencil)
+
+            # M = Mask(warped_image, "raspi_test.json")
+
             self.lines = cv2.HoughLinesP(masked_image, 2, np.pi / 180, 20, np.array([]), minLineLength=min_line_length)
+            self.display_lines_on_img(masked_image, lines=self.lines)
+            self.filter_lines(warped_image)
+
+            self.show_avg_slope_in_static_lines_for_pi_cam(warped_image, wait = False)
+
             # for i in range(1, 10):
             #     for j in range(1,36):
             #         self.lines = cv2.HoughLinesP(masked_image, i, np.pi / (10*j), 20, np.array([]), minLineLength=5, maxLineGap=5)
             #         print(f"rho  : {i}, \ntheta: {np.pi / (10*j)}\nlines: {len(self.lines)}\n\n")
-            horizontal_lines, detected_bool, detect_intensity = self.detect_horizontal(masked_image)
-            if detected_bool:
-                print(f"DETECTED, intensity: {detect_intensity}")
-            self.display_lines_on_img(masked_image, horizontal_lines, thickness=10, wait=False)
-            # cv2.imshow('tt', combo_image)
+            # horizontal_lines, detected_bool, detect_intensity = self.detect_horizontal(masked_image)
+            # if detected_bool:
+            #     print(f"DETECTED, intensity: {detect_intensity}")
+            # self.display_lines_on_img(masked_image, horizontal_lines, thickness=10, wait=False)
+            # cv2.imshow('tt
+            #
+            #
+            # ', combo_image)
 
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
@@ -517,6 +599,6 @@ class Lane_detection:
         return np.array(detected), det_bool, detection_dist_intensity
 
 
-lk = Lane_detection("test_videos/cam_test.mp4")
+lk = Lane_detection("real_tests_picam/random.mp4", use_mask_class=True, mask_filename="raspi_test.json")
 
 lk.detect2()
