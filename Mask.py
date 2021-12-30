@@ -76,6 +76,7 @@ class Mask:
             # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
             #       ('double' if event.dblclick else 'single', event.button,
             #        e  vent.x, event.y, event.xdata, event.ydata))
+            print(f"[{int(round(event.xdata, 0))},{int(round(event.ydata, 0))}]")
             pyperclip.copy(f"[{int(round(event.xdata, 0))},{int(round(event.ydata, 0))}]")
 
         fig.canvas.mpl_connect('button_press_event', on_click)
@@ -224,26 +225,28 @@ class Mask:
 
 
 # testtt
-
+cap = cv2.VideoCapture("real_tests_picam/straight_line.mp4")
+ret, frame = cap.read()
 # image = cv2.imread("test.png")
 # dims = image.shape
 # image_np = np.copy(image)
 # gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-# m = Mask(image, "mask_test30")
+m = Mask(frame, "py_test.json")
 
-# m.point_finding(image)
+# m.point_finding(frame, with_mask=False)
 # m.add_polygon_mask(m.polymask1)
 # m.add_circle_mask(m.circle1)
 # m.set_polygon(150, 200, 5)
-# m.add_polygon_ui(sample_image=image)
+# m.add_polygon_ui(sample_image=frame)
 # m.add_circle(sample_img=image)
-# m.easy_setup(sample_img=image)
-# masked = m.apply_mask(image)
+# m.easy_setup(sample_img=frame)
+stencil = m.stencil
+masked = m.apply_mask(frame)
 # masked = m.apply_to_img(gray_img)
 # cv2.imshow("test", image)
 # cv2.waitKey()
-# cv2.imshow("test", masked)
-# cv2.waitKey()
+cv2.imshow("test", masked)
+cv2.waitKey()
 # plt.show()
 # print("test")

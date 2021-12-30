@@ -139,6 +139,19 @@ class Lane_detection:
         x2 = int((y2 - intercept) / slope)
         return np.array([int(x1), int(y1), int(x2), int(y2)])
 
+    # def filter_lines(self, image_if_debug = None):
+    #     info = {}
+    #     info["found_lines"] = len(self.lines)
+    #     if self.lines is None:
+    #         return -1
+    #     kept_distances = []
+    #     for d in self.calculate_line_lenght(self.lines):
+    #
+    #     slopes = self.calculate_line_slope()
+    #
+
+
+
     def all_lines_found(self, lines, width, image):
         left_fit = []
         right_fit = []
@@ -411,7 +424,12 @@ class Lane_detection:
         #     if wait:
         #         cv2.waitKey()
         # else:
+        for line in lines:
+            print(line)
         try:
+            if line.size == 0:
+                raise
+
             for line in lines:
                 x1, y1, x2, y2 = line.reshape(4)
                 cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
@@ -444,7 +462,8 @@ class Lane_detection:
     # ------------HORIZONTAL-LINE-DETECTION-------------#
     ####################################################
 
-    def detect2(self, output_filename=None):
+    def detect2(self, min_line_length = 0,output_filename=None):
+        min_line_length = 0
         while True:
             ret, frame = self.cap.read()
 
@@ -455,7 +474,7 @@ class Lane_detection:
             warped_image = self.warp(canny_image, self.height, self.width)
             # warped_image = self.warp_nassos(canny_image, intensity=1)
             masked_image = self.apply_mask(warped_image, self.stencil)
-            self.lines = cv2.HoughLinesP(masked_image, 2, np.pi / 180, 20, np.array([]), minLineLength=5, maxLineGap=5)
+            self.lines = cv2.HoughLinesP(masked_image, 2, np.pi / 180, 20, np.array([]), minLineLength=min_line_length)
             # for i in range(1, 10):
             #     for j in range(1,36):
             #         self.lines = cv2.HoughLinesP(masked_image, i, np.pi / (10*j), 20, np.array([]), minLineLength=5, maxLineGap=5)
@@ -498,6 +517,6 @@ class Lane_detection:
         return np.array(detected), det_bool, detection_dist_intensity
 
 
-lk = Lane_detection("test_videos/vlc-record1_trimed.mp4")
+lk = Lane_detection("test_videos/cam_test.mp4")
 
 lk.detect2()
