@@ -18,9 +18,9 @@ def region_of_interest(image,option):
         polygons=np.array([
         [(0,height),(int(width/2.5),int(height/3.5)),(int(width/1.6),int(height/3.5)),(width,height)] #(y,x)
         ])
-    elif option == 2:
+    elif option == 2: #options == 2 when the car turn right small
         polygons=np.array([
-        [(int(width/1.65), int(height/1.68)),(width,int(height/4.1)),(width,height),(int(width/1.09),height)] #(y,x)
+        [(int(width/1.65), int(height/1.68)),(width,int(height/4.1)),(width,height),(int(width/1.65),height)] #(y,x)
         ])
     elif option == 3:
         polygons=np.array([
@@ -45,14 +45,16 @@ def click_event(event,x,y,flags,params):
         cv2.putText(canny_image, str(x) + ',' + str(y), (x,y), font,1,(255,0,0), 2)
         cv2.imshow('image', canny_image)
 
-# for reviewing the mask 
+
+# for reviewing the mask
 """ 
-image = cv2.imread("rsmall0.png")
+image = cv2.imread("Lanes.png")
 lane_image = np.copy(image)
 canny_image = canny(lane_image)
 cv2.imshow("result", region_of_interest(canny_image,2))
 cv2.waitKey(0)  
- """
+cv2.destroyAllWindows()
+"""
 # for finding the coordinates of an image
 """ 
 cv2.imshow('image', canny_image)
@@ -63,7 +65,7 @@ cv2.destroyAllWindows()
 
 # for the video
 
-cap = cv2.VideoCapture("rsmall_simulation.mp4")
+cap = cv2.VideoCapture("take_yaw_-20.mp4")
 while (cap.isOpened()):
     _,frame = cap.read()
     canny_image = canny(frame)
