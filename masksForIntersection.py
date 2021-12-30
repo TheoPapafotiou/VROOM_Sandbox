@@ -65,11 +65,11 @@ cv2.destroyAllWindows()
 
 # for the video
 
-cap = cv2.VideoCapture("take_yaw_-20.mp4")
+cap = cv2.VideoCapture("straight.mp4")
 while (cap.isOpened()):
     _,frame = cap.read()
     canny_image = canny(frame)
-    cropped_image = region_of_interest(canny_image,2)
+    cropped_image = region_of_interest(canny_image,1)
     cv2.imshow("result", cropped_image)
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
