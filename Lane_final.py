@@ -22,7 +22,7 @@ class Lane_detection:
 
     lines = np.empty((1, 1, 1))
 
-    def __init__(self, vp, use_mask_class = False, mask_filename = None):
+    def __init__(self, vp, use_mask_class=False, mask_filename=None):
         self.cap = cv2.VideoCapture(vp)
         self.frame_width = int(self.cap.get(3))
         self.frame_height = int(self.cap.get(4))
@@ -165,10 +165,10 @@ class Lane_detection:
         #       and 0 when the line is **perfectly** horizontal
         direction_array = []
 
-        for s in slopes:
-            if s < 0:
+        for i in range(len(slopes)):
+            if slopes[i] < 0 and self.lines[i][0][1] < self.width / 2:
                 direction_array.append(1)
-            elif s > 0:
+            elif slopes[i] > 0 and self.lines[i][0][1] > self.width / 2:
                 direction_array.append(2)
             else:
                 direction_array.append(0)
@@ -187,7 +187,7 @@ class Lane_detection:
         self.moving_average_slopee(avg_right_slope, avg_left_slope)
 
     def moving_average_slopee(self, right_slope, left_slope, moving_size=10):
-        weights = [*range(1, moving_size+1)]
+        weights = [*range(1, moving_size + 1)]
         r_weights = weights
         l_weights = weights
 
@@ -196,7 +196,7 @@ class Lane_detection:
             self.right_slope_buffer.append(right_slope)
         else:
             self.right_slope_buffer.append(right_slope)
-            r_weights = [*range(1, len(self.right_slope_buffer)+1)]
+            r_weights = [*range(1, len(self.right_slope_buffer) + 1)]
 
         self.right_moving_slope = np.average(self.right_slope_buffer, weights=r_weights)
         if len(self.left_slope_buffer) >= moving_size:
@@ -206,8 +206,6 @@ class Lane_detection:
             self.left_slope_buffer.append(left_slope)
             l_weights = [*range(1, len(self.left_slope_buffer) + 1)]
         self.left_moving_slope = np.average(self.left_slope_buffer, weights=l_weights)
-
-
 
         return self.right_moving_slope, self.left_moving_slope
 
@@ -493,13 +491,20 @@ class Lane_detection:
         #         cv2.waitKey()
         # else:
         for line in lines:
-            print(line)
+            # print(line)
+            pass
         try:
-
-
-            for line in lines:
-                # x1, y1, x2, y2 = line.reshape(4)
-                x1, y1, x2, y2 = line
+            if len(lines) != 1:
+                for line in lines:
+                    # x1, y1, x2, y2 = line.reshape(4)
+                    x1, y1, x2, y2 = line[0]
+                    cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
+                    combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
+                    cv2.imshow("lines", combined_image)
+                    if wait:
+                        cv2.waitKey()
+            else:
+                x1, y1, x2, y2 = lines[0]
                 cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
                 combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
                 cv2.imshow("lines", combined_image)
@@ -515,19 +520,92 @@ class Lane_detection:
 
     def calculate_line_lenght(self, lines):
         lengths = []
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
+        if lines is None:
+            return np.array(lengths)
+        if len(lines) == 1:
+            x1, y1, x2, y2 = lines[0]
             l = math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
             lengths.append(l)
-        return np.array(lengths)
+            return np.array(lengths)
+        else:
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                l = math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
+                lengths.append(l)
+            return np.array(lengths)
 
     def calculate_line_slope(self, lines):
         slopes = []
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            s = (y2 - y1) / (x2 - x1)
-            slopes.append(s)
-        return np.array(slopes)
+        if lines is None:
+            return np.array(slopes)
+        if len(lines) == 1:
+            try:
+                x1, y1, x2, y2 = lines[0]
+                s = (y2 - y1) / (x2 - x1)
+                slopes.append(s)
+                return np.array(slopes)
+            except:
+                x1, y1, x2, y2 = lines[0][0]
+                s = (y2 - y1) / (x2 - x1)
+                slopes.append(s)
+                return np.array(slopes)
+        else:
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                s = (y2 - y1) / (x2 - x1)
+                slopes.append(s)
+            return np.array(slopes)
+
+    def is_turning(self):
+        slopes = self.calculate_line_slope(self.lines)
+        direction_array = []
+
+        for i in range(len(slopes)):
+            if self.lines[i][0][1] < self.width / 2:
+                direction_array.append(1)  # left lines
+            elif self.lines[i][0][1] > self.width / 2:
+                direction_array.append(2)
+            else:
+                direction_array.append(0)
+        right_slopes = []
+        left_slopes = []
+        for i in range(len(direction_array)):
+            # print(f"slope: {slopes[i]}")
+            # self.display_lines_on_img(img, lines=self.lines[i])
+
+            if direction_array[i] == 1:
+                if self.lines[i][0][1] < self.width / 2:
+                    left_slopes.append(slopes[i])
+            elif direction_array[i] == 2:
+                if self.lines[i][0][1] > self.width / 2:
+                    right_slopes.append(slopes[i])
+        all_votes = len(right_slopes) + len(left_slopes) + 1
+        right_votes = 0
+        left_votes = 0
+        for ls in left_slopes:
+            if ls > 0:
+                left_votes += 1
+            if -0.1 > ls > -0.5:
+                right_votes += 1
+        for rs in right_slopes:
+            if rs < 0:
+                right_votes += 1
+            if 0.1 < rs < 0.5:
+                left_votes += 1
+
+        right_confidence = right_votes / all_votes
+        left_confidence = left_votes / all_votes
+
+        if right_confidence > left_confidence:
+            if right_confidence > 0.8:
+                return 1
+            else:
+                return -1
+        else:
+            if left_confidence > 0.8:
+                return 2
+            else:
+                return -1
 
     ####################################################
     # ------------HORIZONTAL-LINE-DETECTION-------------#
@@ -549,56 +627,70 @@ class Lane_detection:
             # M = Mask(warped_image, "raspi_test.json")
 
             self.lines = cv2.HoughLinesP(masked_image, 2, np.pi / 180, 20, np.array([]), minLineLength=min_line_length)
-            self.display_lines_on_img(masked_image, lines=self.lines)
-            self.filter_lines(warped_image)
+            # self.is_turning(masked_image)
+            # self.display_lines_on_img(masked_image, lines=self.lines)
+            # self.filter_lines(warped_image)
 
-            self.show_avg_slope_in_static_lines_for_pi_cam(warped_image, wait = False)
+            # self.show_avg_slope_in_static_lines_for_pi_cam(warped_image, wait=False)
 
             # for i in range(1, 10):
             #     for j in range(1,36):
             #         self.lines = cv2.HoughLinesP(masked_image, i, np.pi / (10*j), 20, np.array([]), minLineLength=5, maxLineGap=5)
             #         print(f"rho  : {i}, \ntheta: {np.pi / (10*j)}\nlines: {len(self.lines)}\n\n")
-            # horizontal_lines, detected_bool, detect_intensity = self.detect_horizontal(masked_image)
-            # if detected_bool:
-            #     print(f"DETECTED, intensity: {detect_intensity}")
-            # self.display_lines_on_img(masked_image, horizontal_lines, thickness=10, wait=False)
-            # cv2.imshow('tt
-            #
-            #
-            # ', combo_image)
+            is_turning = self.is_turning()
+            horizontal_lines, detected_bool, detect_intensity = self.detect_horizontal(masked_image)
+
+            if is_turning == 1:
+                print("right turn")
+            elif is_turning == 2:
+                print("left turn")
+            if detected_bool:
+                print(f"DETECTED, intensity: {detect_intensity}")
+            self.display_lines_on_img(warped_image, horizontal_lines, thickness=10, wait=False)
+            # cv2.imshow('tt', combo_image)
 
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
 
-    def detect_horizontal(self, image):
+    def detect_horizontal(self, image, slope_threshold=0.02, screen_fractions=5):
         detected = []
         det_bool = False
         detection_dist_intensity = -1  # 1 to 3 metric of how close is the detected line
-        for line in self.lines:
-            # print(line)
-            # self.calculate_line_slope(line)
-            # print(self.calculate_line_slope(line))
-            # print(self.calculate_line_lenght(line)[0])
-            x1, y1, x2, y2 = line[0]
+        if self.lines is None:
+            return np.array(detected), det_bool, detection_dist_intensity
+        if self.is_turning() < 0:
+            for line in self.lines:
+                # print(line)
+                # self.calculate_line_slope(line)
+                # print(self.calculate_line_slope(line))
+                # print(self.calculate_line_lenght(line)[0])
+                x1, y1, x2, y2 = line[0]
 
-            # self.display_lines_on_img(image, line, thickness=10)
-            if self.calculate_line_lenght(line)[0] > self.width / 5:  # megalytero apo to 1/3 ths eikonas
-                if abs(self.calculate_line_slope(line)[0]) < 0.01:
-                    detected.append(line)
+                # self.display_lines_on_img(image, line, thickness=10)
+                if self.calculate_line_lenght(line)[0] > self.width / 5:  # megalytero apo to 1/5 ths eikonas
+                    if abs(self.calculate_line_slope(line)[0]) < slope_threshold:
+                        detected.append(line)
         if len(detected) > 0:
+            sum = 0
             det_bool = True
             for d in detected:
-                avg = np.average(d[0], axis=0)
-                if avg >= self.height / 3:
-                    detection_dist_intensity = 1
-                elif self.height / 3 > avg >= 2 * self.height / 3:
-                    detection_dist_intensity = 2
-                else:
-                    detection_dist_intensity = 3
+                sum += d[0][1]
+            avg = sum / len(detected)
+            fraction = avg / self.height
+            detection_dist_intensity = round(fraction * screen_fractions + 1, None)
+            # if avg >= self.height / 3:
+            #     detection_dist_intensity = 1
+            # elif self.height / 3 > avg >= 2 * self.height / 3:
+            #     detection_dist_intensity = 2
+            # else:
+            #     detection_dist_intensity = 3
 
         return np.array(detected), det_bool, detection_dist_intensity
 
 
-lk = Lane_detection("real_tests_picam/random.mp4", use_mask_class=True, mask_filename="raspi_test.json")
-
+# lk = Lane_detection("real_tests_picam/straight_line.mp4", use_mask_class=True, mask_filename="raspi_test.json")
+# lk = Lane_detection("real_tests_picam/straight _ turn.mp4", use_mask_class=True, mask_filename="raspi_test.json")
+# lk = Lane_detection("real_tests_picam/random.mp4", use_mask_class=True, mask_filename="raspi_test.json")
+lk = Lane_detection("real_tests_picam/straight_line _ roundabout.mp4", use_mask_class=True,
+                    mask_filename="raspi_test.json")
 lk.detect2()
