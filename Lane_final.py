@@ -670,13 +670,14 @@ class Lane_detection:
                 if self.calculate_line_lenght(line)[0] > self.width / 5:  # megalytero apo to 1/5 ths eikonas
                     if abs(self.calculate_line_slope(line)[0]) < slope_threshold:
                         detected.append(line)
+        avg_y = -1
         if len(detected) > 0:
             sum = 0
             det_bool = True
             for d in detected:
                 sum += d[0][1]
-            avg = sum / len(detected)
-            fraction = avg / self.height
+            avg_y = sum / len(detected)
+            fraction = avg_y / self.height
             detection_dist_intensity = round(fraction * screen_fractions + 1, None)
             # if avg >= self.height / 3:
             #     detection_dist_intensity = 1
@@ -685,7 +686,7 @@ class Lane_detection:
             # else:
             #     detection_dist_intensity = 3
 
-        return np.array(detected), det_bool, detection_dist_intensity
+        return np.array(detected), det_bool, detection_dist_intensity, avg_y
 
 
 # lk = Lane_detection("real_tests_picam/straight_line.mp4", use_mask_class=True, mask_filename="raspi_test.json")
