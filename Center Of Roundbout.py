@@ -11,10 +11,11 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (20, 255, 80)
 BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
 
 
 class CenterOfRoundanout():
-    def __init__(self, image):
+    def __init__(self, image, yaw):
         self.image = image 
         self.image_copy = None
         self.width = image.shape[0]
@@ -24,6 +25,8 @@ class CenterOfRoundanout():
         self.centers = None
         self.finalCenter = None
         self.closestCenter = None
+        self.lastPoints = None
+        self.yaw = yaw
 
     
     def preprocessing(self):
@@ -89,26 +92,32 @@ class CenterOfRoundanout():
                 self.closestCenter = index + 1
                 smallestDistance = distance
 
-        self.image = cv2.circle(self.image, self.centers[self.closestCenter], radius=0, color=GREEN, thickness= 7)       
+        self.image = cv2.circle(self.image, self.centers[self.closestCenter], radius=0, color=YELLOW, thickness= 7)       
+        print("index is {}".format(index))
+        print("The length is {}".format(len(self.centers)))
 
     def findTheLine(self):
           """Find the point that we will connect our created line"""
+          print("fefe", self.centers[self.closestCenter][0])
+          print(self.closestCenter)
+          
 
-          if self.closestCenter:
+          
               
-              # Save the coordinates of the closest center
-              x_closest = self.centers[self.closestCenter][0]
-              y_closest = self.centers[self.closestCenter][1]         
+          # Save the coordinates of the closest center
+          x_closest = self.centers[self.closestCenter][0]
+          y_closest = self.centers[self.closestCenter][1]         
                  
-              for x in range(x_closest, self.image_copy.shape[1] - 1):
+          for x in range(x_closest, self.image_copy.shape[1] - 1):
                   value = [self.image_copy[y_closest][x]]
                   if value[0][0] > 200 and value [0][1] > 200 and value [0][2] > 200:
                       self.image = cv2.circle(self.image, [x, y_closest], radius=0, color=GREEN, thickness= 8)  
-                      cv2.line(self.image_copy, (0, 794), (x, y_closest), WHITE, thickness=7) ### Here is hardcoded. Needs to be fixed
+                      cv2.line(self.image_copy, (0, 794), (x, y_closest), WHITE, thickness=30) ### Here is hardcoded. Needs to be fixed
                       break
 
     
     def findTheAngle(self):
+        """Finding the angle of our created line"""
         # Save the coordinates of the closest center
         x_closest = self.centers[self.closestCenter][0]
         y_closest = self.centers[self.closestCenter][1]
@@ -120,22 +129,31 @@ class CenterOfRoundanout():
         AC = math.sqrt(AB ** 2 + BC **2)
         print("The angle is {}".format(math.degrees(math.atan(BC / AB)))) 
 
+    def checkStopFlag(self, threshold = 10):
+        """yaw > threshold = stop"""
+        STOP = False
+        if self.yaw > threshold:
+            STOP = True
+
+        return STOP    
 
 
     def centerOfRoundabout(self):
-        self.preprocessing()
-        self.findAndDrawContours()
-        self.get_contour_centers()
-        self.drawPoints()
-        self.findTheCenter()
-        self.findTheLine()
-        self.findTheAngle()
+        if  not self.checkStopFlag():
+            self.preprocessing()
+            self.findAndDrawContours()
+            self.get_contour_centers()
+            self.drawPoints()
+            self.findTheCenter()
+            self.findTheLine()
+            self.findTheAngle()
         
-        # Show the image. Print any button to quit
-        pl.imshow(self.image)
-        pl.show()
-        cv2.waitKey(0)        
+            # Show the image. Print any button to quit
+            pl.imshow(self.image)
+            pl.show()
+            cv2.waitKey(0)   
+            cv2.imwrite("result3366.png", self.image_copy )        
   
 
-image = CenterOfRoundanout(cv2.imread('frame3.png'))     
+image = CenterOfRoundanout(cv2.imread("frame3366.png"), 4)     
 image.centerOfRoundabout()
