@@ -17,7 +17,8 @@ This class represents a mask for the images, and therefore the FOV of the car.
 
 
 class Mask:
-    mask = {"circles": [],
+    mask = {"shape": [],
+            "circles": [],
             "polygons": []}
 
     # polmask1 = [[214, 164], [463, 178], [615, 436], [44, 444]]
@@ -39,11 +40,16 @@ class Mask:
     # num_of_points: The number of points the mask will have.
     # input_img_sample: A sample of the input images, so the dimensions of the stencil can be determined.
 
-    def __init__(self, sample_img, filename, circle_data=None, polygons_data=None):
+    def __init__(self, filename=None, sample_img=None, circle_data=None, polygons_data=None):
         self.filename = filename
-        self.shape = sample_img.shape[0:2]
-        self.stencil = np.zeros(self.shape, dtype=np.uint8)
-        if filename != "":
+        if sample_img is None and filename is None:
+            print("ERROR intializing: you need either to give a sample mask or the filename \
+            (if you add the values manually add a new filename)")
+            exit()
+        if sample_img is not None:
+            self.shape = sample_img.shape[0:2]
+            self.mask["shape"] = self.shape
+            self.stencil = np.zeros(self.shape, dtype=np.uint8)
             import os.path
             if os.path.isfile(filename):
                 with open(filename, "r") as f:
@@ -53,11 +59,39 @@ class Mask:
                 with open(filename, "w") as f:
                     json.dump(self.mask, f, indent=4)
                 self.easy_setup(sample_img=sample_img)
-        else:
-            if circle_data is not None:
-                self.make_circle_mask(circle_data)
-            if polygons_data is not None:
-                self.make_polygon_mask(polygons_data)
+        elif filename is not None:
+            import os.path
+            if os.path.isfile(filename):
+                with open(filename, "r") as f:
+                    self.mask = json.load(f)
+                self.shape = self.mask["shape"]
+                self.stencil = np.zeros(self.shape, dtype=np.uint8)
+                self.update_stencil()
+            else:
+                with open(filename, "w") as f:
+                    json.dump(self.mask, f, indent=4)
+                self.easy_setup(sample_img=sample_img)
+        if circle_data is not None:
+            self.make_circle_mask(circle_data)
+        if polygons_data is not None:
+            self.make_polygon_mask(polygons_data)
+
+        # self.stencil = np.zeros(self.shape, dtype=np.uint8)
+        # if filename is not None:
+        #     import os.path
+        #     if os.path.isfile(filename):
+        #         with open(filename, "r") as f:
+        #             self.mask = json.load(f)
+        #         self.update_stencil()
+        #     else:
+        #         with open(filename, "w") as f:
+        #             json.dump(self.mask, f, indent=4)
+        #         self.easy_setup(sample_img=sample_img)
+        # else:
+        #     if circle_data is not None:
+        #         self.make_circle_mask(circle_data)
+        #     if polygons_data is not None:
+        #         self.make_polygon_mask(polygons_data)
         # self.points = np.zeros(num_of_points * 2)
 
     def update_file(self):
@@ -222,34 +256,38 @@ class Mask:
                 print("try again")
 
 
-
-
 # testtt
 ##### COMMENT ALL TO USE TO OTHER CLASSES
-"""
-cap = cv2.VideoCapture("real_tests_picam/straight_line.mp4")
-ret, frame = cap.read()
-# image = cv2.imread("test.png")
-# dims = image.shape
-# image_np = np.copy(image)
-# gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-m = Mask(frame, "py_test.json")
 
-m.point_finding(frame, with_mask=False)
-# m.add_polygon_mask(m.polymask1)
-# m.add_circle_mask(m.circle1)
-# m.set_polygon(150, 200, 5)
-# m.add_polygon_ui(sample_image=frame)
-# m.add_circle(sample_img=image)
-# m.easy_setup(sample_img=frame)
-stencil = m.stencil
-masked = m.apply_mask(frame)
-# masked = m.apply_to_img(gray_img)
-# cv2.imshow("test", image)
+### for vid test
+# cap = cv2.VideoCapture("real_tests_picam/straight_line.mp4")
+# ret, frame = cap.read()
+
+#### for image test
+# frame = cv2.imread('frame3383.png',0)
+#
+#
+# # image = cv2.imread("test.png")
+# # dims = image.shape
+# # image_np = np.copy(image)
+# # gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#
+# m = Mask(filename="default_mask.json", sample_img=frame)
+#
+# # m.point_finding(frame, with_mask=False)
+# # m.add_polygon_mask(m.polymask1)
+# # m.add_circle_mask(m.circle1)
+# # m.set_polygon(150, 200, 5)
+# # m.add_polygon_ui(sample_image=frame)
+# # m.add_circle(sample_img=image)
+# # m.easy_setup(sample_img=frame)
+# stencil = m.stencil
+# masked = m.apply_mask(frame)
+# # masked = m.apply_to_img(gray_img)
+# # cv2.imshow("test", image)
+# # cv2.waitKey()
+# cv2.imshow("test", masked)
 # cv2.waitKey()
-cv2.imshow("test", frame)
-cv2.waitKey()
-# plt.show()
-# print("test")
-"""
+# # plt.show()
+# # print("test")

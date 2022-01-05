@@ -652,7 +652,7 @@ class Lane_detection:
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
 
-    def detect_horizontal(self, image, slope_threshold=0.02, screen_fractions=5):
+    def detect_horizontal(self, slope_threshold=0.02, screen_fractions=5):
         detected = []
         det_bool = False
         detection_dist_intensity = -1  # 1 to 3 metric of how close is the detected line
