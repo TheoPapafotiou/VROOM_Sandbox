@@ -1,2 +1,5 @@
 # VROOM_Sandbox
-This is a repository for all testing files developed by student team VROOM in Aristotle University of Thessaloniki.. 
+
+This branch is for Lane Detection and Lane Keeping !
+
+Combined_Lanes.py is the main file we are using for Lane Keeping. The other ones are just for testing stuff.
