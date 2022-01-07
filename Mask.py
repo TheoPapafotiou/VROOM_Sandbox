@@ -17,6 +17,8 @@ This class represents a mask for the images, and therefore the FOV of the car.
 
 
 class Mask:
+
+    # this is the mask dict. This will be copied in the mask json file
     mask = {"shape": [],
             "circles": [],
             "polygons": []}
