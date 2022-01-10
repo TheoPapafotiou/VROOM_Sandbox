@@ -115,6 +115,8 @@ cv2.destroyAllWindows()
  """
 
 # for the video
+x_points = []
+y_points = []
 
 cap = cv2.VideoCapture("straight_simulation.mp4")
 while (cap.isOpened()):
@@ -130,16 +132,16 @@ while (cap.isOpened()):
   
     # we iterate through each corner, 
     # making a circle at each point that we think is a corner.
-    x_points = []
-    y_points = []
+
     for i in corners:
         x, y = i.ravel()
         x_points.append(x)
         y_points.append(y)
         cv2.circle(cropped_image, (x, y), 3, 255, -1)
-    
+    print(x_points[0])
     white = (255,255,255)
-    cv2.line(cropped_image, (int(x_points[0]),int(y_points[0])), (0,int(height)), white, 3)
+    
+    cv2.line(cropped_image, (int(x_points[2]),int(y_points[2])), (50,int(height)), white, 15)
     cv2.imshow("result", cropped_image)
 
     if cv2.waitKey(5) == ord('q'):
