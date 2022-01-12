@@ -8,8 +8,14 @@ from Mask import Mask
 def canny(image):
     # Returns the processed image
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    canny = cv2.Canny(blur, 100, 300)
+    # cv2.imshow("gray", gray)
+    # cv2.waitKey()
+    blur = cv2.GaussianBlur(gray, (5, 5), 2)
+    # cv2.imshow("blur", blur)
+    # cv2.waitKey()
+    canny = cv2.Canny(blur, 100, 200)
+    # cv2.imshow("canny", canny)
+    # cv2.waitKey()
     return canny
 
 
@@ -71,8 +77,10 @@ def display_lines_on_img(img, lines, thickness=10, wait=True):
                 cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
                 combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
                 cv2.imshow("lines", combined_image)
-                if wait:
-                    cv2.waitKey()
+                # if wait:
+                #     cv2.waitKey()
+            if wait:
+                cv2.waitKey()
         else:
             x1, y1, x2, y2 = lines[0]
             cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
@@ -89,25 +97,60 @@ def display_lines_on_img(img, lines, thickness=10, wait=True):
             cv2.waitKey()
 
 
+def make_stencil(polygon, height, width):
+    stencil = np.zeros((height, width), dtype=np.uint8)
+    # cv2.fillPoly(stencil, np.int32([polygon]), 255)
+    poly = np.array(polygon, dtype=np.int64)
+    cv2.fillConvexPoly(stencil, poly, color=(255, 255, 255))
+    return stencil
+
+
+def apply_mask(image, stencill):
+    masked = cv2.bitwise_and(image,
+                             image,
+                             mask=stencill)
+    return masked
+
+
 class DetectHorizontal:
     height = 0
     width = 0
     lines = np.empty((1, 1, 1))
+    precision_state = False
 
-    def __init__(self, mask_filename="default_mask.json"):
-        self.mask = Mask(filename=mask_filename)
+    def __init__(self, mask_filename="default_mask_real.json", sample_img=None):
+        self.mask = Mask(filename=mask_filename, sample_img=sample_img)
+        # self.precision_mask = Mask(filename=f"precision_{mask_filename}", sample_img=sample_img)
+        self.shape = self.mask.mask["shape"]
+        self.height = self.shape[0]
+        self.width = self.shape[1]
+        self.precision_stencil = self.make_precision_stencil()
         self.stencil = self.mask.stencil
 
-    def detection(self, image, min_line_length=200):
-        self.height = image.shape[0]
-        self.width = image.shape[1]
+    def detection(self, image, stop_signal_at = 300, min_line_length=100):
+        # self.height = image.shape[0]
+        # self.width = image.shape[1]
         # masked_image = self.mask.apply_mask(input_image=canny(image))
-        masked_image = self.mask.apply_mask(image)
-        self.lines = cv2.HoughLinesP(image, 2, np.pi / 180, 20, np.array([]), minLineLength=min_line_length)
-
-        detected_lines, info_dict = self.detect_horizontal()
-        display_lines_on_img(image, detected_lines)
+        canny_img = canny(image)
+        if self.precision_state is False:
+            masked_image = self.mask.apply_mask(canny_img)
+        else:
+            # masked_image = self.precision_mask.apply_mask(canny_img)
+            # print()
+            masked_image = apply_mask(canny_img, self.precision_stencil)
+        # self.lines = cv2.HoughLinesP(masked_image, 5, np.pi / 180, 150, np.array([]), minLineLength=min_line_length)
+        self.lines = cv2.HoughLinesP(masked_image, 1, np.pi / 180, 50, np.array([]),
+                                     minLineLength=min_line_length, maxLineGap=100)
+        detected_lines, info_dict = self.detect_horizontal(slope_threshold=0.05)
+        display_lines_on_img(image, detected_lines, wait=True)
+        if 0 < info_dict["detection_dist_intensity"] < 4 and self.precision_state is False:
+            self.precision_state = True
+            print("precision_state")
+        if info_dict["min_y"] > self.height - stop_signal_at:
+            info_dict["stop_signal"] = 1
+        # print(info_dict)
         return info_dict
+
 
     def is_turning(self):
         slopes = calculate_line_slope(self.lines)
@@ -160,15 +203,30 @@ class DetectHorizontal:
             else:
                 return -1
 
-    def detect_horizontal(self, slope_threshold=0.02, screen_fractions=5):
+    def make_precision_stencil(self, fraction_precision_mask=3.5
+                               ):
+        height = self.height
+        fraction_height = self.height - self.height / fraction_precision_mask
+        width = self.width
+        polygon = [[0, height-1], [0, fraction_height-1], [width, fraction_height-1], [width-1, height-1]]
+
+        stencil = make_stencil(polygon, height, width)
+        return stencil
+        # masked_image = apply_mask(canny_img, stencil)
+
+    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None):
         info_dict = {
-            "det_bool": False,
             "detection_dist_intensity": -1,  # 1 to <screen_fractions> metric of how close is the detected line
             "avg_y": -1,
             "min_y": -1,
+            "lines_found" : 0,
+            "stop_signal" : 0
         }
         detected = []
         detection_dist_intensity = -1  # 1 to 3 metric of how close is the detected line
+        avg_y = -1
+        min_y = -1
+
         if self.lines is None:
             return np.array(detected), info_dict
         if self.is_turning() < 0:
@@ -179,18 +237,25 @@ class DetectHorizontal:
                 # print(self.calculate_line_lenght(line)[0])
                 x1, y1, x2, y2 = line[0]
 
-                # self.display_lines_on_img(image, line, thickness=10)
-                if calculate_line_length(line)[0] > self.width / 5:  # megalytero apo to 1/5 ths eikonas
-                    if abs(calculate_line_slope(line)[0]) < slope_threshold:
-                        detected.append(line)
+                # display_lines_on_img(image, line, thickness=10)
+
+                # if calculate_line_length(line)[0] > self.width / 10 :  # megalytero apo to 1/5 ths eikonas
+                #     print("passes length")
+
+                if abs(calculate_line_slope(line)[0]) < slope_threshold:
+                    detected.append(line)
         if len(detected) > 0:
             sum = 0
-            det_bool = True
             for d in detected:
-                sum += d[0][1]
-            avg_y = sum / len(detected)
+                if d[0][1] > min_y:  # the lower in the picture the bigger the y
+                    min_y = d[0][1]
+                if d[0][3] > min_y:
+                    min_y = d[0][3]
+                sum += d[0][1]  # y1
+                sum += d[0][3]  # y2
+            avg_y = sum / (2 * len(detected))
             fraction = avg_y / self.height
-            detection_dist_intensity = round(fraction * screen_fractions + 1, None)
+            detection_dist_intensity = screen_fractions - round(fraction * screen_fractions + 1, None)
             # if avg >= self.height / 3:
             #     detection_dist_intensity = 1
             # elif self.height / 3 > avg >= 2 * self.height / 3:
@@ -199,15 +264,7 @@ class DetectHorizontal:
             #     detection_dist_intensity = 3
         info_dict["detection_dist_intensity"] = detection_dist_intensity
         info_dict["avg_y"] = avg_y
-        info_dict["det_bool"] = det_bool
+        info_dict["min_y"] = min_y
+        info_dict["lines_found"] = len(self.lines)
 
         return np.array(detected), info_dict
-
-
-
-
-frame = cv2.imread('frame3383.png',0)
-det = DetectHorizontal()
-print(det.detection(frame))
-
-

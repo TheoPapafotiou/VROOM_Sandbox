@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib as mpl
 
-mpl.use('macosx')
+# to be able to show the terminal windows on PyCharm
+from sys import platform
+if platform == "darwin":
+    mpl.use('macosx')
 
-# helps finding the coordinates
-import pyperclip
 
 """
 This class represents a mask for the images, and therefore the FOV of the car.
@@ -23,8 +24,6 @@ class Mask:
             "circles": [],
             "polygons": []}
 
-    # polmask1 = [[214, 164], [463, 178], [615, 436], [44, 444]]
-    # polymask2 = [[50, 50], [50, 150], [150, 150], [150, 50]]
     # The points that represent the mask's shape, in the form of np array [x0,y0,x1,y1,x2,y2...]
     polygons = {}
 
@@ -101,6 +100,7 @@ class Mask:
             json.dump(self.mask, f, indent=4)
 
     def point_finding(self, sample_img, plot_title="click to copy the point", with_mask=True):
+        import pyperclip
         fig, ax = plt.subplots()
         plt.title(plot_title)
         if with_mask:
