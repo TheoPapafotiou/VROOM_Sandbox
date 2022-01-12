@@ -130,7 +130,8 @@ while (cap.isOpened()):
 cap.release()
 cv22.destroyAllWindows()
 '''
-# tetartos tropos 
+
+# tetartos tropos -> somehow operating 
 
 from matplotlib import pyplot as plt
 def canny(image):
@@ -187,11 +188,9 @@ x_points = []
 y_points = []
 
 cap = cv2.VideoCapture("straight_simulation.mp4")
-fourcc = cv2.VideoWriter_fourcc(*'avc1')
-out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))
+
 while (cap.isOpened()):
     _,frame = cap.read()
-    out.write(frame)
     canny_image = canny(frame)
     cropped_image = region_of_interest(canny_image,1)
     #cv2.imshow("result", cropped_image)
@@ -218,9 +217,8 @@ while (cap.isOpened()):
 
     if cv2.waitKey(5) == ord('q'):
         break
-cap.release()
-out.release()
 cv2.destroyAllWindows()
+
 
 
 '''
@@ -265,7 +263,7 @@ while True:
     ## REFINE CORNERS HERE!
 
     # find centroids
-    ret, labels, stats, centroids = cv2.cocv22nnectedComponentsWithStats(dst_thresh)
+    ret, labels, stats, centroids = cv2.connectedComponentsWithStats(dst_thresh)
 
     # define the criteria to stop and refine the corners
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
@@ -288,12 +286,11 @@ while True:
 
 cv2.destroyAllWindows()
 '''
-
 '''
 import cv2
 import numpy as np
 
-img_file = 'Image.jpg'
+img_file = 'straight_1.png'
 img = cv2.imread(img_file, cv2.IMREAD_COLOR)
 
 imgDim = img.shape
@@ -331,4 +328,112 @@ for item in corners:
 cv2.namedWindow("Corners", cv2.WINDOW_NORMAL)
 cv2.imshow("Corners",img)
 cv2.waitKey()
+'''
+'''
+import numpy as np
+import cv2 as cv
+
+filename = 'straight_1.png'
+img = cv.imread(filename)
+gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+gray = np.float32(gray)
+dst = cv.cornerHarris(gray,2,3,0.04)
+#result is dilated for marking the corners, not important
+dst = cv.dilate(dst,None)
+# Threshold for an optimal value, it may vary depending on the image.
+img[dst>0.01*dst.max()]=[0,0,255]
+cv.imshow('dst',img)
+if cv.waitKey(0) & 0xff == 27:
+    cv.destroyAllWindows()
+'''
+'''
+from matplotlib import pyplot as plt
+
+def canny(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    # reduce noise  -> filter with guassian filter
+    blur = cv2.GaussianBlur(gray,(5,5),0)
+    #canny method to find lanes -> based on colour
+    canny = cv2.Canny(blur, 50, 150)
+    return canny
+  
+def region_of_interest(image,option):
+    #mask
+    height = image.shape[0]
+    width = image.shape[1]
+    #for options == 1 when the car moves straight
+    if option == 1:
+        polygons=np.array([
+        [(0,height),(int(width/2.5),int(height/3.5)),(int(width/1.6),int(height/3.5)),(width,height)] #(y,x)
+        ])
+    elif option == 2: #options == 2 when the car turn right small
+        polygons=np.array([
+        [(int(width/1.65), int(height/1.68)),(width,int(height/4.1)),(width,height),(int(width/1.65),height)] #(y,x)
+        ])
+    elif option == 3:
+        polygons=np.array([
+        [(1,1),(650,350),(1030,350),(width,height)] #(y,x)
+        ])
+
+    # apply it to a block mask
+    mask = np.zeros_like(image)
+    cv2.fillPoly(mask, polygons, 255)
+    masked_image = cv2.bitwise_and(image,mask)
+    return masked_image
+def slope(x1,y1,x2,y2):
+    if x2!=x1:
+        return((y2-y1)/(x2-x1))
+    else:
+        return 'NA'
+def drawLine(img, x1,y1,x2,y2):
+    m = slope(x1,y1,x2,y2)
+    h,w = img.shape[: 2]
+    if m != 'NA':
+
+        # starting point
+        px = 0
+        py = -(x1-0)*m + y1
+        # ending point
+        qx = w
+        qy = -(x2-w)*m + y2
+        cv2.line(img,(int(px), int(py)), (int(qx),int(qy)), (255,255,255), 12)
+
+    
+x_points = []
+y_points = []
+
+cap = cv2.VideoCapture("straight_simulation.mp4")
+while (cap.isOpened()):
+    _,frame = cap.read()
+    canny_image = canny(frame)
+    cropped_image = region_of_interest(canny_image,1)
+    #cv2.imshow("result", cropped_image)
+    width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
+
+    corners = cv2.goodFeaturesToTrack(cropped_image,3,13,0.05)
+    kernel = np.ones((7,7),np.uint8)
+    corners = cv2.dilate(corners, kernel,iterations = 2)
+    cropped_image[corners>0.025 * corners.max()] = [255,127,127]
+
+    for i in corners:
+        x, y = i.ravel()
+        cv2.circle(frame, (x, y), 3, (0, 255, 0), -1)
+
+    for i in corners:
+        x, y = i.ravel()
+        x_points.append(x)
+        y_points.append(y)
+        cv2.circle(cropped_image, (x, y), 3, 255, -1)
+
+#    print(y_points[2])
+    white = (255,255,255)
+    
+    #drawLine(cropped_image,50,int(height),544,233)
+    cv2.line(cropped_image, (int(x_points[2]),int(y_points[2])), (50,int(height)), white, 15)
+    cv2.imshow("result", cropped_image)
+
+    if cv2.waitKey(5) == ord('q'):
+        break
+cv2.destroyAllWindows()
 '''
