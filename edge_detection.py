@@ -189,10 +189,14 @@ y_points = []
 
 cap = cv2.VideoCapture("straight_simulation.mp4")
 
+out = cv2.VideoWriter('output.avi', -1, 20.0, (640,480))
+
 while (cap.isOpened()):
     _,frame = cap.read()
     canny_image = canny(frame)
     cropped_image = region_of_interest(canny_image,1)
+    out.write(cropped_image)
+
     #cv2.imshow("result", cropped_image)
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
@@ -217,6 +221,7 @@ while (cap.isOpened()):
 
     if cv2.waitKey(5) == ord('q'):
         break
+out.release()
 cv2.destroyAllWindows()
 
 
