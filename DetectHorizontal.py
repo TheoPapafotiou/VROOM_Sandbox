@@ -58,6 +58,48 @@ def calculate_line_length(lines):
             lengths.append(l)
         return np.array(lengths)
 
+def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict = None):
+    line_image = np.zeros_like(img)
+    # if lines[0].size == 0:
+    #     cv2.imshow("lines", img)
+    #     if wait:
+    #         cv2.waitKey()
+    # else:
+    for line in lines:
+        # print(line)
+        pass
+    try:
+        if len(lines) != 1:
+            for line in lines:
+                # x1, y1, x2, y2 = line.reshape(4)
+                x1, y1, x2, y2 = line[0]
+                cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
+                combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
+                if info_dict is not None:
+                    margin = 0
+                    for key in info_dict:
+                        cv2.putText(combined_image, f"{key} : {info_dict[key]}",(50, 50+margin),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), thickness = 2 )
+                        margin+=40
+
+                cv2.imshow("lines", combined_image)
+                # if wait:
+                #     cv2.waitKey()
+            if wait:
+                cv2.waitKey()
+        else:
+            x1, y1, x2, y2 = lines[0]
+            cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
+            combined_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
+            cv2.imshow("lines", combined_image)
+            if wait:
+                cv2.waitKey()
+    except:
+        cv2.imshow("lines", img)
+        if wait:
+            cv2.waitKey()
+
+
 
 def display_lines_on_img(img, lines, thickness=10, wait=True):
     line_image = np.zeros_like(img)
@@ -127,11 +169,13 @@ class DetectHorizontal:
         self.precision_stencil = self.make_precision_stencil()
         self.stencil = self.mask.stencil
 
-    def detection(self, image, stop_signal_at = 300, min_line_length=100):
+    def detection(self, image, stop_signal_at=300, min_line_length=100, reset=False):
         # self.height = image.shape[0]
         # self.width = image.shape[1]
         # masked_image = self.mask.apply_mask(input_image=canny(image))
         canny_img = canny(image)
+        if reset:
+            self.precision_state = False
         if self.precision_state is False:
             masked_image = self.mask.apply_mask(canny_img)
         else:
@@ -142,15 +186,14 @@ class DetectHorizontal:
         self.lines = cv2.HoughLinesP(masked_image, 1, np.pi / 180, 50, np.array([]),
                                      minLineLength=min_line_length, maxLineGap=100)
         detected_lines, info_dict = self.detect_horizontal(slope_threshold=0.05)
-        display_lines_on_img(image, detected_lines, wait=True)
         if 0 < info_dict["detection_dist_intensity"] < 4 and self.precision_state is False:
             self.precision_state = True
             print("precision_state")
-        if info_dict["min_y"] > self.height - stop_signal_at:
+        if int(info_dict["min_y"]) > (self.height - stop_signal_at):
             info_dict["stop_signal"] = 1
         # print(info_dict)
+        display_lines_on_img2(image, detected_lines, wait=False, info_dict=info_dict)
         return info_dict
-
 
     def is_turning(self):
         slopes = calculate_line_slope(self.lines)
@@ -208,7 +251,7 @@ class DetectHorizontal:
         height = self.height
         fraction_height = self.height - self.height / fraction_precision_mask
         width = self.width
-        polygon = [[0, height-1], [0, fraction_height-1], [width, fraction_height-1], [width-1, height-1]]
+        polygon = [[0, height - 1], [0, fraction_height - 1], [width, fraction_height - 1], [width - 1, height - 1]]
 
         stencil = make_stencil(polygon, height, width)
         return stencil
@@ -219,8 +262,8 @@ class DetectHorizontal:
             "detection_dist_intensity": -1,  # 1 to <screen_fractions> metric of how close is the detected line
             "avg_y": -1,
             "min_y": -1,
-            "lines_found" : 0,
-            "stop_signal" : 0
+            "lines_found": 0,
+            "stop_signal": 0
         }
         detected = []
         detection_dist_intensity = -1  # 1 to 3 metric of how close is the detected line
