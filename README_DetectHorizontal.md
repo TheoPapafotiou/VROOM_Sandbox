@@ -10,9 +10,13 @@ Create an instance of the class DetectHorizontal and and initialize pass the ang
 Then, run the function `detection` with the arguments:
 
    `image` : the frame that you want to detect the horizontal lines
+
    `stop_signal_at=300` (optional) : in which height of the image you want the closer line to be to return a stop signal
+
    `min_line_length=100` (optional) : the minimum line length that the function will detect
+
    `reset=False` : set to True when you want to reset its function to the normal (after the prcision detection)
+
 
 
 The function will return a dictionary that will include the info:
