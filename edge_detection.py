@@ -187,32 +187,65 @@ def drawLine(img, x1,y1,x2,y2):
 x_points = []
 y_points = []
 
+x_points2 = []
+y_points2 = []
+
 cap = cv2.VideoCapture("straight_simulation.mp4")
 
 while (cap.isOpened()):
     _,frame = cap.read()
-    canny_image = canny(frame)
-    cropped_image = region_of_interest(canny_image,1)
+    #canny_image = canny(frame)
+    
+    #cropped_image = region_of_interest(canny_image,1)
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
-    corners = cv2.goodFeaturesToTrack(cropped_image, 27, 0.01, 10)
-    corners = np.int0(corners)
+    
+    frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame2 = np.float32(frame1)
+    frame2 = region_of_interest(frame2,1)
+    dst = cv2.cornerHarris(frame2, 2,3,0.04)
+    dst = cv2.dilate(dst,None)
+    ret, dst = cv2.threshold(dst,0.01*dst.max(),255,0)
+    dst = np.uint8(dst)
+# find centroids
+    ret,lables, stats, centroids = cv2.connectedComponentsWithStats(dst)
+    criteria = (cv2.TERM_CRITERIA_EPS +cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+    corners = cv2.cornerSubPix(frame2,np.float32(centroids),(5,5),(-1,-1),criteria)
+    res = np.hstack((corners,centroids))
+    res = np.int0(res)
+   # frame[res[:,1],res[:,0]] = [0,0,255]
+
+    frame[dst>0.01 * dst.max()] = [0,0,255]
+    for i in res:
+        x,y,x2,y2 = i.ravel() 
+        
+        if x == x2 and y == y2:
+            x_points.append(x)
+            y_points.append(y)
+            cv2.circle(frame2, (x, y), 3, 255, -1)
+
+    white = (255,255,255)
+    
+    cv2.line(frame, (int(width/8), int(height)),(x_points[0], y_points[0]), white, 9)
+    corners2 = cv2.goodFeaturesToTrack(frame2, 27, 0.01, 10)
+    corners2 = np.int0(corners)
   
     # we iterate through each corner, 
     # making a circle at each point that we think is a corner.
 
     for i in corners:
         x, y = i.ravel()
-        x_points.append(x)
-        y_points.append(y)
-        cv2.circle(cropped_image, (x, y), 3, 255, -1)
+        x_points2.append(x)
+        y_points2.append(y)
+        cv2.circle(frame2, (int(x), int(y)), 3, 255, -1)
 
 #    print(y_points[2])
     white = (255,255,255)
     
     #drawLine(cropped_image,50,int(height),544,233)
-    cv2.line(cropped_image, (int(x_points[2]),int(y_points[2])), (50,int(height)), white, 15)
-    cv2.imshow("result", cropped_image)
+    cv2.line(frame, (int(width/8),int(height)), (int(x_points2[0]),int(y_points2[0])), (0,0,255), 10  )
+
+    cv2.imshow("result", frame)
 
     if cv2.waitKey(5) == ord('q'):
         break
