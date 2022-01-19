@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+DetectHorizontal_tests.py
+mask_tests.py
+pl_test.json
+testetst
+helper_functions.py
+testv2.json
+
+
