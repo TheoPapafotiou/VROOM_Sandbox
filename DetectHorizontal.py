@@ -69,7 +69,7 @@ def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict = None)
         # print(line)
         pass
     try:
-        if len(lines) != 1:
+        if len(lines) != 1 or len(lines) != 0:
             for line in lines:
                 # x1, y1, x2, y2 = line.reshape(4)
                 x1, y1, x2, y2 = line[0]
@@ -121,8 +121,8 @@ def display_lines_on_img(img, lines, thickness=10, wait=True):
                 cv2.imshow("lines", combined_image)
                 # if wait:
                 #     cv2.waitKey()
-            if wait:
-                cv2.waitKey()
+                if wait:
+                    cv2.waitKey()
         else:
             x1, y1, x2, y2 = lines[0]
             cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
@@ -189,10 +189,15 @@ class DetectHorizontal:
         if 0 < info_dict["detection_dist_intensity"] < 4 and self.precision_state is False:
             self.precision_state = True
             print("precision_state")
+        if info_dict["avg_y"] == -1 and self.precision_state is True:
+            self.precision_state = False
+            print("exited precision_state")
         if int(info_dict["min_y"]) > (self.height - stop_signal_at):
             info_dict["stop_signal"] = 1
-        # print(info_dict)
-        display_lines_on_img2(image, detected_lines, wait=False, info_dict=info_dict)
+        print(info_dict)
+        # display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
+        display_lines_on_img(image, detected_lines, wait=True)
+
         return info_dict
 
     def is_turning(self):
@@ -257,9 +262,10 @@ class DetectHorizontal:
         return stencil
         # masked_image = apply_mask(canny_img, stencil)
 
-    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None):
+    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None, threshold_avg_x = 200):
         info_dict = {
             "detection_dist_intensity": -1,  # 1 to <screen_fractions> metric of how close is the detected line
+            "detected_boolean" : False,
             "avg_y": -1,
             "min_y": -1,
             "lines_found": 0,
@@ -287,8 +293,34 @@ class DetectHorizontal:
 
                 if abs(calculate_line_slope(line)[0]) < slope_threshold:
                     detected.append(line)
+        else:
+            return np.array(detected), info_dict
+        det_bool = False
         if len(detected) > 0:
+
+            # for d in detected:
+            #     average_y = (d[0][1] + d[0][3])/2
+            #     length = calculate_line_length(d)
+            #
+            leftest_x = self.width
+            rightest_x = 0
+            sum_x = 0
+            for d in detected:
+                if d[0][0] > rightest_x:
+                    rightest_x = d[0][0]
+                if d[0][2] > rightest_x:
+                    rightest_x = d[0][2]
+                if d[0][0] < leftest_x:
+                    leftest_x = d[0][0]
+                if d[0][2] < leftest_x:
+                    leftest_x = d[0][2]
+                sum_x += d[0][0] + d[0][2]
+                avg_x = sum_x / (2 * len(detected))
+                if abs(avg_x - (self.width/2)) >threshold_avg_x:
+                    return np.array(detected), info_dict
+
             sum = 0
+            det_bool = True
             for d in detected:
                 if d[0][1] > min_y:  # the lower in the picture the bigger the y
                     min_y = d[0][1]
@@ -308,6 +340,7 @@ class DetectHorizontal:
         info_dict["detection_dist_intensity"] = detection_dist_intensity
         info_dict["avg_y"] = avg_y
         info_dict["min_y"] = min_y
-        info_dict["lines_found"] = len(self.lines)
+        info_dict["lines_found"] = len(detected)
+        info_dict["detected_boolean"] = det_bool
 
         return np.array(detected), info_dict
