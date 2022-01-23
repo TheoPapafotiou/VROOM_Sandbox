@@ -58,7 +58,8 @@ def calculate_line_length(lines):
             lengths.append(l)
         return np.array(lengths)
 
-def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict = None):
+
+def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict=None):
     line_image = np.zeros_like(img)
     # if lines[0].size == 0:
     #     cv2.imshow("lines", img)
@@ -78,15 +79,15 @@ def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict = None)
                 if info_dict is not None:
                     margin = 0
                     for key in info_dict:
-                        cv2.putText(combined_image, f"{key} : {info_dict[key]}",(50, 50+margin),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), thickness = 2 )
-                        margin+=40
+                        cv2.putText(combined_image, f"{key} : {info_dict[key]}", (50, 50 + margin),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
+                        margin += 40
 
                 cv2.imshow("lines", combined_image)
-                # if wait:
-                #     cv2.waitKey()
-            if wait:
-                cv2.waitKey()
+                if wait:
+                    cv2.waitKey()
+            # if wait:
+            #     cv2.waitKey()
         else:
             x1, y1, x2, y2 = lines[0]
             cv2.line(line_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), thickness=thickness)
@@ -98,7 +99,6 @@ def display_lines_on_img2(img, lines, thickness=10, wait=True, info_dict = None)
         cv2.imshow("lines", img)
         if wait:
             cv2.waitKey()
-
 
 
 def display_lines_on_img(img, lines, thickness=10, wait=True):
@@ -195,8 +195,8 @@ class DetectHorizontal:
         if int(info_dict["min_y"]) > (self.height - stop_signal_at):
             info_dict["stop_signal"] = 1
         print(info_dict)
-        # display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
-        display_lines_on_img(image, detected_lines, wait=True)
+        display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
+        # display_lines_on_img(image, detected_lines, wait=True)
 
         return info_dict
 
@@ -262,10 +262,12 @@ class DetectHorizontal:
         return stencil
         # masked_image = apply_mask(canny_img, stencil)
 
-    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None, threshold_avg_x = 200):
+    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None, threshold_avg_x=200,
+                          x_avg_enabled=False,
+                          non_y_avg_exclusion_enabled=True, avg_y_exclusion_threshold=50):
         info_dict = {
             "detection_dist_intensity": -1,  # 1 to <screen_fractions> metric of how close is the detected line
-            "detected_boolean" : False,
+            "detected_boolean": False,
             "avg_y": -1,
             "min_y": -1,
             "lines_found": 0,
@@ -302,22 +304,23 @@ class DetectHorizontal:
             #     average_y = (d[0][1] + d[0][3])/2
             #     length = calculate_line_length(d)
             #
-            leftest_x = self.width
-            rightest_x = 0
-            sum_x = 0
-            for d in detected:
-                if d[0][0] > rightest_x:
-                    rightest_x = d[0][0]
-                if d[0][2] > rightest_x:
-                    rightest_x = d[0][2]
-                if d[0][0] < leftest_x:
-                    leftest_x = d[0][0]
-                if d[0][2] < leftest_x:
-                    leftest_x = d[0][2]
-                sum_x += d[0][0] + d[0][2]
-                avg_x = sum_x / (2 * len(detected))
-                if abs(avg_x - (self.width/2)) >threshold_avg_x:
-                    return np.array(detected), info_dict
+            if x_avg_enabled:
+                leftest_x = self.width
+                rightest_x = 0
+                sum_x = 0
+                for d in detected:
+                    if d[0][0] > rightest_x:
+                        rightest_x = d[0][0]
+                    if d[0][2] > rightest_x:
+                        rightest_x = d[0][2]
+                    if d[0][0] < leftest_x:
+                        leftest_x = d[0][0]
+                    if d[0][2] < leftest_x:
+                        leftest_x = d[0][2]
+                    sum_x += d[0][0] + d[0][2]
+                    avg_x = sum_x / (2 * len(detected))
+                    if abs(avg_x - (self.width / 2)) > threshold_avg_x:
+                        return np.array(detected), info_dict
 
             sum = 0
             det_bool = True
@@ -337,6 +340,13 @@ class DetectHorizontal:
             #     detection_dist_intensity = 2
             # else:
             #     detection_dist_intensity = 3
+
+            if (non_y_avg_exclusion_enabled):
+                # for i in range(len(detected)-1):
+                #     if abs(detected[i][0][1]-avg_y)>avg_y_exclusion_threshold:
+                #         detected.pop(i)
+                detected = [d for d in detected if abs(d[0][1] - avg_y) < avg_y_exclusion_threshold]
+
         info_dict["detection_dist_intensity"] = detection_dist_intensity
         info_dict["avg_y"] = avg_y
         info_dict["min_y"] = min_y
