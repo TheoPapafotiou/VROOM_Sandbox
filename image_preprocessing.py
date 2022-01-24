@@ -22,11 +22,11 @@ def region_of_interest(image,option):
     #for options == 1 when the car moves straight
     if option == 1:
         polygons=np.array([
-        [(0,height),(int(width/1.5),int(height/2)),(int(width/1.5),int(height/1)),(width,height)] #(y,x)
+        [(0,height), (int(width/1.5), int(height/2)), (int(width/1.5), int(height/1)), (width,height)] #(y,x)
         ])
     elif option == 2: #options == 2 when the car turn right small
         polygons=np.array([
-        [(int(width/1.5), int(height/4.1)),(width,int(height/4.1)),(width,int(height/1.47)),(int(width/1.5),int(height/1.47))] #(y,x)
+        [(int(width/1.5), int(height/4.1)), (width,int(height/4.1)), (width,int(height/1.0)), (int(width/1.5), int(height/1.0))] #(y,x)
         ])
         rect = cv2.boundingRect(polygons)
         x,y,w,h = rect
@@ -34,8 +34,11 @@ def region_of_interest(image,option):
 
     elif option == 3:
         polygons=np.array([
-        [(1,1),(650,350),(1030,350),(width,height)] #(y,x)
+        [(int(width/1),int(height/1.0)), (int(width/1), int(height / 5)), (int(width/2.5), int(height/ 5)), (int(width/2.5), int(height))] #(y,x)
         ])
+        rect = cv2.boundingRect(polygons)
+        x,y,w,h = rect
+        croped = image[y:y+h, x:x+w].copy()
 
 
     # apply it to a block mask
@@ -47,7 +50,7 @@ def region_of_interest(image,option):
     
 ## to show the coordinates of an image:
 
-cap= cv2.VideoCapture('video2 (1).mp4')
+cap= cv2.VideoCapture('videos/video1 (1).mp4')
 
 
 fps= int(cap.get(cv2.CAP_PROP_FPS))
@@ -67,7 +70,7 @@ while cap.isOpened():
         
         # The cropped image is the image with the mask applied
         canny_image = canny(frame)
-        cropped_image, smaller_image = region_of_interest(canny_image, 2)
+        cropped_image, smaller_image = region_of_interest(canny_image, 3)
         cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2BGR)
        
         # Put side to side the real image and the image made above 
