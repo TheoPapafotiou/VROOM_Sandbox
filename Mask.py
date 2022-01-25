@@ -37,9 +37,10 @@ class Mask:
 
     # Constructor of the Mask.
     # @args:
+    # filename: the filename that you want the mask to be seved at
     # sample_img: the sample image to determine the stencil
-    # num_of_points: The number of points the mask will have.
-    # input_img_sample: A sample of the input images, so the dimensions of the stencil can be determined.
+    # circle_data: you can add manually the circle points if you want to
+    # polygons_data: you can add manually the polygons points if you want to
 
     def __init__(self, filename=None, sample_img=None, circle_data=None, polygons_data=None):
         self.filename = filename
@@ -47,7 +48,7 @@ class Mask:
             print("ERROR intializing: you need either to give a sample mask or the filename \
             (if you add the values manually add a new filename)")
             exit()
-        if sample_img is not None:
+        if sample_img is not None and filename is not None:
             self.shape = sample_img.shape[0:2]
             self.mask["shape"] = self.shape
             self.stencil = np.zeros(self.shape, dtype=np.uint8)
@@ -72,6 +73,8 @@ class Mask:
                 with open(filename, "w") as f:
                     json.dump(self.mask, f, indent=4)
                 self.easy_setup(sample_img=sample_img)
+        else:
+            print("error, wrong inputs when making mask instance")
         if circle_data is not None:
             self.make_circle_mask(circle_data)
         if polygons_data is not None:

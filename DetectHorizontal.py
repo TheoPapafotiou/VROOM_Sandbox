@@ -169,7 +169,7 @@ class DetectHorizontal:
         self.precision_stencil = self.make_precision_stencil()
         self.stencil = self.mask.stencil
 
-    def detection(self, image, stop_signal_at=300, min_line_length=100, reset=False):
+    def detection(self, image, stop_signal_at=300, min_line_length=100, reset=False, precision_state_enabled = False):
         # self.height = image.shape[0]
         # self.width = image.shape[1]
         # masked_image = self.mask.apply_mask(input_image=canny(image))
@@ -186,16 +186,17 @@ class DetectHorizontal:
         self.lines = cv2.HoughLinesP(masked_image, 1, np.pi / 180, 50, np.array([]),
                                      minLineLength=min_line_length, maxLineGap=100)
         detected_lines, info_dict = self.detect_horizontal(slope_threshold=0.05)
-        if 0 < info_dict["detection_dist_intensity"] < 4 and self.precision_state is False:
-            self.precision_state = True
-            print("precision_state")
-        if info_dict["avg_y"] == -1 and self.precision_state is True:
-            self.precision_state = False
-            print("exited precision_state")
+        if precision_state_enabled:
+            if 0 < info_dict["detection_dist_intensity"] < 4 and self.precision_state is False:
+                self.precision_state = True
+                print("precision_state")
+            if info_dict["avg_y"] == -1 and self.precision_state is True:
+                self.precision_state = False
+                print("exited precision_state")
         if int(info_dict["min_y"]) > (self.height - stop_signal_at):
             info_dict["stop_signal"] = 1
         print(info_dict)
-        display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
+        # display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
         # display_lines_on_img(image, detected_lines, wait=True)
 
         return info_dict
@@ -341,10 +342,7 @@ class DetectHorizontal:
             # else:
             #     detection_dist_intensity = 3
 
-            if (non_y_avg_exclusion_enabled):
-                # for i in range(len(detected)-1):
-                #     if abs(detected[i][0][1]-avg_y)>avg_y_exclusion_threshold:
-                #         detected.pop(i)
+            if non_y_avg_exclusion_enabled:
                 detected = [d for d in detected if abs(d[0][1] - avg_y) < avg_y_exclusion_threshold]
 
         info_dict["detection_dist_intensity"] = detection_dist_intensity
