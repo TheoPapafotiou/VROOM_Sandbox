@@ -196,7 +196,7 @@ class DetectHorizontal:
         if int(info_dict["min_y"]) > (self.height - stop_signal_at):
             info_dict["stop_signal"] = 1
         print(info_dict)
-        # display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
+        display_lines_on_img2(image, detected_lines, wait=True, info_dict=info_dict)
         # display_lines_on_img(image, detected_lines, wait=True)
 
         return info_dict
@@ -263,8 +263,8 @@ class DetectHorizontal:
         return stencil
         # masked_image = apply_mask(canny_img, stencil)
 
-    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None, threshold_avg_x=200,
-                          x_avg_enabled=False,
+    def detect_horizontal(self, slope_threshold=0.05, screen_fractions=12, image=None,
+                          x_avg_enabled=False, threshold_avg_x=200,
                           non_y_avg_exclusion_enabled=True, avg_y_exclusion_threshold=50):
         info_dict = {
             "detection_dist_intensity": -1,  # 1 to <screen_fractions> metric of how close is the detected line
@@ -341,6 +341,7 @@ class DetectHorizontal:
             #     detection_dist_intensity = 2
             # else:
             #     detection_dist_intensity = 3
+
 
             if non_y_avg_exclusion_enabled:
                 detected = [d for d in detected if abs(d[0][1] - avg_y) < avg_y_exclusion_threshold]
