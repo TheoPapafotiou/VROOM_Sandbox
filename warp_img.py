@@ -2,7 +2,7 @@ from heapq import merge
 import cv2
 import numpy as np
 
-img = cv2.imread('GPS3.jpg')
+img = cv2.imread('Preview_20_tbw.jpg')
 height, width = img.shape[:2]
 mrg = 10
 
@@ -13,8 +13,8 @@ mrg = 10
 # print(img_back.shape)
 # img_back[mrg : mrg + height, mrg : mrg + width] = img
 
-input_pts = np.float32([[mrg, mrg], [mrg, height - mrg], [width - mrg, mrg]])
-output_pts = np.float32([[0, 0], [0, height], [width, 0]])
+input_pts = np.float32([[10, 0], [0, height - 40], [width - 40, height - 30]])
+output_pts = np.float32([[0, 0], [0, height], [width, height]])
 
 transform = cv2.getAffineTransform(input_pts , output_pts)
 dst = cv2.warpAffine(img, transform, (width, height))
