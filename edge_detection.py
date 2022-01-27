@@ -8,10 +8,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from numpy.core.overrides import verify_matching_signatures
 from masksForIntersection import Mask_intesecrtion
-import skimage
 from skimage.measure import ransac, LineModelND
-from sklearn import linear_model, datasets
-
+from datetime import datetime
 
 import time 
 
@@ -48,7 +46,7 @@ def ransac_method(x_points, y_points):
 
 
 
-def corner_3(gray,turn): #turn = 1 : straight, turn = 2 : small right, turn = 3 : left big
+def corner_3(gray,turn,counter): #turn = 1 : straight, turn = 2 : small right, turn = 3 : left big
     dst = cv2.cornerHarris(gray, 2,3,0.04)
     dst = cv2.dilate(dst,None)
     ret, dst = cv2.threshold(dst,0.01*dst.max(),255,0)
@@ -73,12 +71,13 @@ def corner_3(gray,turn): #turn = 1 : straight, turn = 2 : small right, turn = 3 
 #                data = np.column_stack([x,y])
                 x_points.append(x)
                 y_points.append(y) 
-                data = np.column_stack([x_points,y_points])           
+               # data = np.column_stack([x_points,y_points])           
                 cv2.circle(gray, (x, y), 3, 255, -1)
 
-                
-    white = (255,255,255)
     xnew,ynew = ransac_method(x_points,y_points)
+    
+    white = (255,255,255)
+   
     if len(x_points) > 2:
         cv2.line(gray, (0, int(height)),(int(xnew[0]), int(ynew[0])), white, 9) 
     '''
@@ -90,20 +89,21 @@ def corner_3(gray,turn): #turn = 1 : straight, turn = 2 : small right, turn = 3 
 
     
 cap = cv2.VideoCapture("videos/straight.mp4")
-time_start = time.time()
+counter = 0
 while (cap.isOpened()):
+    counter = counter +  1
     _,frame = cap.read()
     gray = Mask_intesecrtion.canny(frame)
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
     cropped_frame = Mask_intesecrtion.region_of_interest(gray,1)
-    
-    gray= corner_3(cropped_frame,1)
+    if counter > 100:
+        gray= corner_3(cropped_frame,1,counter)
    # ransac_method(x_points,y_points)
     
     cv2.imshow("result", gray)
 
-    if cv2.waitKey(10) == ord('q'):
+    if cv2.waitKey(3) == ord('q'):
         break
     
 cv2.destroyAllWindows()
