@@ -40,7 +40,9 @@ else:
 pipeline.start(config)
 
 try:
-    while True:
+    count = 0
+    time.sleep(5)
+    while count < 300:
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -48,10 +50,11 @@ try:
         color_frame = frames.get_color_frame()
         if not depth_frame or not color_frame:
             continue
-
+        
         # Convert images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
+        print(depth_image.dtype)
 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.1), cv2.COLORMAP_JET)
@@ -62,17 +65,23 @@ try:
         # If depth and color resolutions are different, resize color image to match depth image for display
         if depth_colormap_dim != color_colormap_dim:
             resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
-            images = np.hstack((resized_color_image, depth_colormap))
+            print(type(resized_color_image))
+            print(type(depth_colormap))
+            images1 = np.hstack((resized_color_image, depth_colormap))
         else:
-            images = np.hstack((color_image, depth_colormap))
+            
+            images1 = np.hstack((color_image, depth_colormap))
 
         # Show images
         # cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         # cv2.imshow('RealSense', images)
-        cv2.imwrite('RealSense.jpg', images)
-        break
+        cv2.imwrite('RealSense1_' + str(count) + '.jpg', images1)
+        cv2.imwrite('RealSense2_' + str(count) + '.jpg', depth_image)
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
+        print(count)
+        time.sleep(0.1)
+        count += 1
 
 finally:
 
