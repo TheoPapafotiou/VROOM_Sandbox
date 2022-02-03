@@ -75,8 +75,16 @@ try:
         # Show images
         # cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         # cv2.imshow('RealSense', images)
-        cv2.imwrite('RealSense1_' + str(count) + '.jpg', images1)
-        cv2.imwrite('RealSense2_' + str(count) + '.jpg', depth_image)
+        # cv2.imwrite('RealSense1_' + str(count) + '.jpg', images1)
+        # cv2.imwrite('RealSense2_' + str(count) + '.jpg', depth_image)
+
+        ## saving as .npy
+        # cv2.imwrite('RealSense_try2_color_' + str(count) + '.jpg', images1)
+        # np.save('RealSense_try2_' + str(count) + '.npy', depth_image)
+
+        
+
+
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
         print(count)
