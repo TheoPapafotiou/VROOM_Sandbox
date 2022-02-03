@@ -37,6 +37,11 @@ class Mask_intesecrtion:
             polygons=np.array([
             [(0,int(height/1.2)),(0,int(height/5)),(int(width/1.4),int(height/5)),(int(width),int(height/1.2))] #(y,x)
             ])    
+        elif option == 5: # straight half cut
+            polygons=np.array([
+                [(0,int(height)),(int(width/2.5),int(height/3.5)),(int(width/2),int(height/3.5)),(int(width/2),int(height))] #(y,x)
+                ])
+
 
         # apply it to a block mask
         mask = np.zeros_like(image)
@@ -57,21 +62,20 @@ class Mask_intesecrtion:
             cv2.imshow('image', canny_image)
 
     # for reviewing the mask
-"""
-    image = cv2.imread("photo/rss1.png")
-    lane_image = np.copy(image)
-    canny_image = canny(lane_image)
-    cv2.imshow("result", region_of_interest(canny_image,2))
-    cv2.waitKey(0)  
-    cv2.destroyAllWindows()
-"""
+
+    # image = cv2.imread("photo/straight_1.png")
+    # lane_image = np.copy(image)
+    # canny_image = canny(lane_image)
+    # cv2.imshow("result", region_of_interest(canny_image,5))
+    # cv2.waitKey(0)  
+    # cv2.destroyAllWindows()
+
     # for finding the coordinates of an image
-""" 
-    cv2.imshow('image', canny_image)
-    cv2.setMouseCallback('image', click_event)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    """
+
+    # cv2.imshow('image', canny_image)
+    # cv2.setMouseCallback('image', click_event)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     # for the video
 """
@@ -93,3 +97,28 @@ class Mask_intesecrtion:
     cv2.destroyAllWindows()
     
     """
+
+
+"""
+def slope(x1,y1,x2,y2):
+    if x2!=x1:
+        return((y2-y1)/(x2-x1))
+    else:
+        return 'NA'
+
+def drawLine(img, x1,y1,x2,y2):
+    m = slope(x1,y1,x2,y2)
+    h,w = img.shape[: 2]
+    if m != 'NA':
+        # starting point
+        px = 0
+        py = -(x1-0)*m + y1
+        # ending point
+        qx = w
+        qy = -(x2-w)*m + y2
+        cv2.line(img,(int(px), int(py)), (int(qx),int(qy)), (255,255,255), 12)
+"""    
+
+
+   
+
