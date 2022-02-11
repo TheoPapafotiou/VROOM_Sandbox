@@ -34,10 +34,10 @@ else:
 
 # Start streaming
 pipeline.start(config)
-
+count = 0
 try:
-    while True:
-
+    while count <= 600:
+        count += 1
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
@@ -69,7 +69,7 @@ try:
         # cv2.imwrite('RealSense_Detect.jpg', color_image)
         
         # if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # break
 
 finally:
 

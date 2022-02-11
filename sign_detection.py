@@ -11,7 +11,7 @@ class SignDetection:
 
     def __init__(self):
 
-        self.classes = ['ParkingSpot','Crosswalk','Ahead','HighwayEnd','HighwayStart','PriorityRoad','Stop','NoEntry','Roundabout','TrafficLights']
+        self.classes = ['ParkingSpot','Crosswalk','Ahead','HighwayEnd','HighwayStart','PriorityRoad','Stop','NoEntry','Roundabout','TrafficLights', 'Roadblock', 'Vehicle']
         self.net = cv2.dnn.readNetFromDarknet("yolov3_tiny-custom.cfg",r"yolov3_tiny-custom_total.weights")
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
