@@ -98,7 +98,7 @@ class Vehicle_detection_depth_cam():
             cv2.imshow("raw", image)
             cv2.waitKey()
             emp_minus_im = empty - image
-            
+
             image = cv2.convertScaleAbs(emp_minus_im, alpha=0.07)
             cv2.imshow("scale abs", image)
             cv2.waitKey()
@@ -106,6 +106,7 @@ class Vehicle_detection_depth_cam():
             # image = cv2.convertScaleAbs(image, alpha=0.07)
             # cv2.imshow("scale abs", image)
             # cv2.waitKey()
+
 
             image = cv2.applyColorMap(image, cv2.COLORMAP_HSV)
             cv2.imshow("colormap", image)
