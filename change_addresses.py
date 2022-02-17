@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 
 import VL53L1X
-import Jetson.GPIO as GPIO
+# import Jetson.GPIO as GPIO    # choose
+import RPi.GPIO as GPIO         # choose
 import time
 
 addr_current = 0x29
 addr_desired = [0x33, 0x34, 0x35, 0x36]
 gpio_pins = [21, 22, 23, 24]
-time_sleep = 0.5
-
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(gpio_pins, GPIO.OUT)
-for i in range(4):
+
+num_of_sensors = 1              # choose
+
+for i in range(num_of_sensors):
 
     GPIO.output(gpio_pins[i], GPIO.HIGH)
-    time.sleep(time_sleep)
+    time.sleep(2)
 
     print("""
     Current address: {:02x}
@@ -25,6 +27,6 @@ for i in range(4):
     tof.open()
     tof.change_address(addr_desired[i])
     tof.close()
-    time.sleep(time_sleep)
+    time.sleep(0.5)
 
 GPIO.cleanup()
