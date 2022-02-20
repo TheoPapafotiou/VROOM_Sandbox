@@ -42,7 +42,7 @@ pipeline.start(config)
 try:
     count = 0
     time.sleep(5)
-    while count < 300:
+    while count < 500:
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -79,8 +79,8 @@ try:
         # cv2.imwrite('RealSense2_' + str(count) + '.jpg', depth_image)
 
         ## saving as .npy
-        # cv2.imwrite('RealSense_try2_color_' + str(count) + '.jpg', images1)
-        # np.save('RealSense_try2_' + str(count) + '.npy', depth_image)
+        cv2.imwrite('RealSense_color_' + str(count) + '.jpg', color_image)
+        np.save('RealSense_' + str(count) + '.npy', depth_image)
 
         
 
@@ -88,7 +88,7 @@ try:
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
         print(count)
-        time.sleep(0.1)
+        time.sleep(3)
         count += 1
 
 finally:
