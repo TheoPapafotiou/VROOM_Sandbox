@@ -3,13 +3,9 @@
 # Navigation Intersection 
 
 
-* intersection_nav.py 
+* houghLine.py
 
-this file it is just a test 
-the files related to this file are: 
--test2.mp4
--lanes.png
--lineDetection2.png
+this file contains the first method of corner's recognition with the aid of Hough Lines Detection 
 
 * masksForIntersection.py
 
@@ -31,6 +27,10 @@ This file contains the masks for each case/path the car follows
     - it contains the files:
     ... (to be completed)
 
-* intersection.py
+* multiRansac.py
 
-the main code -> just the logic (to be completed)
+this file contains the second method : applying ransac, finding the best two lines that are not parallels, calculating the intersection of these lines
+
+* edge_detection.py
+
+this file contains the straight route navigation solution (Harris Corner Detection, Ransac) 
