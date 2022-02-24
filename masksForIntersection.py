@@ -23,11 +23,46 @@ class Mask_intesecrtion:
         #for options == 1 when the car moves straight
         if option == 1:
             polygons=np.array([
+            [(0,height),(int(width/2.5),int(height*0.4)),(int(width/1.6),int(height*0.4)),(width,height)] #(y,x)
+            ])
+        elif option == 2: #options == 2 when the car turn right small
+            polygons=np.array([
+            [(int(width/1.45), int(height*0.5)),(width,int(height*0.5)),(width,height),(int(width/3.1),height)] #(y,x)
+            ])
+        elif option == 3: #options == 3 when the car turns big left
+            polygons=np.array([
+            [(1,1),(650,350),(1030,350),(width,height)] #(y,x)
+            ])
+        elif option == 4: # to detect the corner in intersection
+            polygons=np.array([
+            [(0,int(height/1.2)),(0,int(height/5)),(int(width/1.4),int(height/5)),(int(width),int(height/1.2))] #(y,x)
+            ])    
+        elif option == 5: # straight half cut
+            polygons=np.array([
+                [(0,int(height)),(int(width/2.5),int(height*0.4)),(int(width/2),int(height*0.4)),(int(width/2),int(height))] #(y,x)
+                ])
+        elif option == 6:
+            return image
+        # apply it to a block mask
+        mask = np.zeros_like(image)
+        cv2.fillPoly(mask, polygons, 255)
+        masked_image = cv2.bitwise_and(image,mask)
+        return masked_image    
+    
+    #with the old camera the needed masks:
+
+    def region_of_interest_old(image,option):
+        #mask
+        height = image.shape[0]
+        width = image.shape[1]
+        #for options == 1 when the car moves straight
+        if option == 1:
+            polygons=np.array([
             [(0,height),(int(width/2.5),int(height/3.5)),(int(width/1.6),int(height/3.5)),(width,height)] #(y,x)
             ])
         elif option == 2: #options == 2 when the car turn right small
             polygons=np.array([
-            [(int(width/1.65), int(height/3)),(width,int(height/4.1)),(width,height),(int(width/2),height)] #(y,x)
+            [(int(width/1.45), int(height/3)),(width,int(height/4.1)),(width,height),(int(width/3.1),height)] #(y,x)
             ])
         elif option == 3: #options == 3 when the car turns big left
             polygons=np.array([
@@ -41,8 +76,8 @@ class Mask_intesecrtion:
             polygons=np.array([
                 [(0,int(height)),(int(width/2.5),int(height/3.5)),(int(width/2),int(height/3.5)),(int(width/2),int(height))] #(y,x)
                 ])
-
-
+        elif option == 6:
+            return image
         # apply it to a block mask
         mask = np.zeros_like(image)
         cv2.fillPoly(mask, polygons, 255)
@@ -120,5 +155,18 @@ def drawLine(img, x1,y1,x2,y2):
 """    
 
 
+"""min_distance= mindist(img,width,0) # max initialization 
+                        for i in range (1, self.counter2):
+                            if min_distance > mindist(img,self.x_points[i],self.y_points[i]):
+                                xmin = self.x_points[i]
+                                ymin = self.y_points[i]
+                                
+                                
+    def min_dist(self,img,x_point,y_point):
+        width  = img.shape[0] 
+        return ((((x_point - int(width/2) )**2) + ((y_point)**2) )**0.5)
+
+
+"""
    
 
