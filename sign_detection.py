@@ -75,7 +75,7 @@ class SignDetection:
                 cv2.rectangle(img,(x,y),(x+w,y+h),color,2)
                 cv2.putText(img,self.label, (x-int(self.x_camera/2),y+int(self.y_camera/4)),font,2,color,2)
                 cv2.putText(img,"Confidence: " + self.confidence, (x-int(self.x_camera/2),y+int(self.y_camera/3)),font,2,color,2)
-
+                cv2.imwrite('vehicleDet' + time.time() + '.jpg', img)
         return self.label, self.distance
 
     def detectSign(self, img, height, width):
