@@ -37,6 +37,7 @@ pipeline.start(config)
 count = 0
 try:
     while count <= 600:
+        time.sleep(3)
         count += 1
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -66,7 +67,7 @@ try:
         result = sd.detectSign(color_image, 480, 640)
         print(time.time() - start)
         print(result)
-        # cv2.imwrite('RealSense_Detect.jpg', color_image)
+        cv2.imwrite(f"RealSense_Detect_{count}.jpg", color_image)
         
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         # break
