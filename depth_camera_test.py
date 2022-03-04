@@ -39,6 +39,9 @@ else:
 # Start streaming
 pipeline.start(config)
 
+align_to = rs.stream.color
+align = rs.align(align_to)
+
 try:
     count = 0
     time.sleep(5)
@@ -46,6 +49,28 @@ try:
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
+
+        # ---- ALIGNED ----
+        # align depth frame to color frame
+        aligned_frames = align.process(frames)
+        # Get aligned frames
+        aligned_depth_frame = aligned_frames.get_depth_frame()
+        aligned_color_frame = aligned_frames.get_color_frame()
+
+        # Convert images to numpy arrays
+        aligned_depth_image = np.asanyarray(aligned_depth_frame.get_data())
+        aligned_color_image = np.asanyarray(aligned_color_frame.get_data())
+        print(aligned_depth_image.dtype)
+
+        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+        aligned_depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(aligned_depth_image, alpha=0.1), cv2.COLORMAP_JET)
+
+        ## saving as .npy
+        cv2.imwrite('RealSense_aligned_rgb_' + str(count) + '.jpg', aligned_color_image)
+        np.save('RealSense_aligned_d_' + str(count) + '.npy', aligned_depth_image)
+        cv2.imwrite('RealSense_aligned_d_clmp_' + str(count) + '.jpg', aligned_depth_colormap)
+
+
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
         if not depth_frame or not color_frame:
