@@ -86,18 +86,18 @@ class SignDetection:
                     "width": w,
                     "height": h
                 }
-        return self.label, self.distance, data
+        return self.label, data
 
     def detectSign(self, img, height, width):
         blob = cv2.dnn.blobFromImage(img, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
-        label, distance, data = self.detectSignProcedure(
+        label, data = self.detectSignProcedure(
             blob,
             img,
             height,
             width
         )
 
-        result = {'Label': str(label), 'Distance': str(distance)}
+        result = {'Label': str(label), 'Box': dict(data)}
         # result = json.dumps(result)
 
         return result, data
