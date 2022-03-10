@@ -83,7 +83,7 @@ try:
 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.1), cv2.COLORMAP_JET)
-
+        cv2.imwrite('RealSense_d_clmp_' + str(count) + '.jpg', depth_colormap)
         depth_colormap_dim = depth_colormap.shape
         color_colormap_dim = color_image.shape
 
@@ -92,10 +92,10 @@ try:
             resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
             print(type(resized_color_image))
             print(type(depth_colormap))
-            images1 = np.hstack((resized_color_image, depth_colormap))
+            images1 = np.hstack((resized_color_image, aligned_depth_colormap))
         else:
             
-            images1 = np.hstack((color_image, depth_colormap))
+            images1 = np.hstack((color_image, aligned_depth_colormap))
 
         # Show images
         # cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
@@ -105,6 +105,7 @@ try:
 
         ## saving as .npy
         cv2.imwrite('RealSense_color_' + str(count) + '.jpg', color_image)
+        cv2.imwrite('RealSense_stack_rgb_align_' + str(count) + '.jpg', images1)
         np.save('RealSense_' + str(count) + '.npy', depth_image)
 
         
