@@ -12,8 +12,8 @@ import time
 
 from sign_detection import SignDetection
 
+print("waits 6s to initialize DNN")
 sd = SignDetection() # ~ 6 secs delay due to initializations
-print("waits 6s to initialize")
 time.sleep(6)
 
 # Configure depth and color streams
@@ -50,7 +50,7 @@ align = rs.align(align_to)
 
 try:
 	count = 0
-	time.sleep(5)
+	# time.sleep(5)
 	while True:
 
 		input("press key to take a picture")
@@ -73,7 +73,7 @@ try:
 		color_image = aligned_color_image
 		color_img_dim = color_image.shape
 
-		data1 , data2 = sd.detectSign(color_image, color_img_dim[0], color_img_dim[1])
+		data1 , data2 = sd.detectSign(color_image.copy(), color_img_dim[0], color_img_dim[1])
 		label = data1['Label']
 
 
@@ -84,15 +84,20 @@ try:
 		# cv2.imwrite('RealSense2_' + str(count) + '.jpg', depth_image)
 
 		## saving as .npy
-		cv2.imwrite('RealSense_color_' + str(count) + '.jpg', color_image)
-		cv2.imwrite(f"{label}_no_{count}.jpg", color_image)
+		# cv2.imwrite('RealSense_color_' + str(count) + '.jpg', color_image)
+
+		filename = f"dataset/{label}_{count}_{time.strftime('%H-%M-%S', time.gmtime())}.jpg"
+
+		cv2.imwrite(filename, color_image)
+		# cv2.imshow('RealSense', color_image)
+
 
 		
 
 
 		# if cv2.waitKey(1) & 0xFF == ord('q'):
 		#     break
-		print(count)
+		print(f"{label}, {count}")
 		# time.sleep(3)
 		count += 1
 
