@@ -3,8 +3,9 @@ import numpy as np
 import cv2
 import time
 from sign_detection import SignDetection
+from pedestrian_detection_jetson import PedestrianDetectionJetson
 
-sd = SignDetection() # ~ 6 secs delay due to initializations
+pedDet = PedestrianDetectionJetson() # ~ 6 secs delay due to initializations
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
@@ -36,7 +37,7 @@ else:
 pipeline.start(config)
 count = 0
 try:
-    while count <= 600:
+    while count <= 20:
         count += 1
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -49,27 +50,13 @@ try:
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
 
-        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.1), cv2.COLORMAP_JET)
-
-        depth_colormap_dim = depth_colormap.shape
-        color_colormap_dim = color_image.shape
-
-        # If depth and color resolutions are different, resize color image to match depth image for display
-        if depth_colormap_dim != color_colormap_dim:
-            resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
-            images = np.hstack((resized_color_image, depth_colormap))
-        else:
-            images = np.hstack((color_image, depth_colormap))
-
         start = time.time()
-        result = sd.detectSign(color_image, 480, 640)
+        result_image = pedDet.detectPedestrian(color_image)
         print(time.time() - start)
-        print(result)
-        cv2.imwrite('RealSense_Detect.jpg', color_image)
-        
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        # break
+
+        cv2.imwrite('RealSense_Ped_Detect_' + str(count) + '.jpg', result_image)
+
+        time.sleep(0.2)
 
 finally:
 

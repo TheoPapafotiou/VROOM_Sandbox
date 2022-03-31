@@ -2,9 +2,6 @@ import cv2
 import numpy as np
 import time
 
-
-
-
 class SignDetection:
     """
     This class implements the sign & traffic lights detection procedure in our vehicle.
