@@ -37,7 +37,7 @@ else:
 pipeline.start(config)
 count = 0
 try:
-    while count <= 20:
+    while count <= 4:
         count += 1
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -51,10 +51,10 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
 
         start = time.time()
-        result_image = pedDet.detectPedestrian(color_image)
-        print(time.time() - start)
+        result_image = pedDet.detectPedestrian()
+        print("Time: ", time.time() - start)
 
-        cv2.imwrite('RealSense_Ped_Detect_' + str(count) + '.jpg', result_image)
+        cv2.imwrite('RealSense_Ped_Detect_' + str(count) + '.jpg', color_image)
 
         time.sleep(0.2)
 

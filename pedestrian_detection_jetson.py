@@ -25,13 +25,20 @@ class PedestrianDetectionJetson:
         self.net = jetson.inference.poseNet("resnet18-body", sys.argv, 0.15)
 
         # create video sources & outputs
-        self.output = jetson.utils.videoOutput("", argv=sys.argv)
+        # self.output = jetson.utils.videoOutput('my_video.mp4') # 'my_video.mp4' for file
 
-    def detectPedestrian(self, img):
+        self.input = jetson.utils.videoSource('/home/nvidia/Desktop/VROOM_Sandbox/pose.png')
+        
+
+    def detectPedestrian(self):
 
         try: 
             # perform pose estimation (with overlay)
-            poses = self.net.Process(img, overlay="links,keypoints")
+            img = self.input.Capture()
+            print(img.type)
+            print('Before posing')
+            poses = self.net.Process(img)#, overlay="links,keypoints")
+            print('After posing')
 
             # print the pose results
             print("detected {:d} objects in image".format(len(poses)))
@@ -42,10 +49,11 @@ class PedestrianDetectionJetson:
                 print('Links', pose.Links)
 
             # render the image
-            self.output.Render(img)
+            # self.output.Render(img)
 
-            # update the title bar
-            self.output.SetStatus("{:s} | Network {:.0f} FPS".format("resnet18-body", self.net.GetNetworkFPS()))
+            # # update the title bar
+            # self.output.SetStatus("{:s} | Network {:.0f} FPS".format("resnet18-body", self.net.GetNetworkFPS()))
+            print('FPS: ', self.net.GetNetworkFPS())
 
             # print out performance info
             self.net.PrintProfilerTimes()
