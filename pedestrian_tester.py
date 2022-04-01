@@ -3,20 +3,27 @@ import cv2
 import time
 from pedestrian_detection_jetson import PedestrianDetectionJetson
 
-pedDet = PedestrianDetectionJetson() # ~ 6 secs delay due to initializations
+pedDet = PedestrianDetectionJetson()
+video = cv2.VideoCapture('picam_pedestrian1.mp4')
+
+time.sleep(2)
 
 count = 0
 try:
-    # Wait for a coherent pair of frames: depth and color
-    color_image = cv2.imread('pose.png')
+    while count < 2:
+        color_image = cv2.imread('Pedestriandoll.jpeg')
+        # _, color_image = video.read()
 
-    start = time.time()
-    result_image = pedDet.detectPedestrian()
-    print("Time: ", time.time() - start)
+        start = time.time()
+        result_image = pedDet.detectPedestrian(color_image)
+        print("Time: ", time.time() - start)
+        print()
 
-    cv2.imwrite('RealSense_Ped_Detect_' + str(count) + '.jpg', color_image)
+        if count > 150:
+            cv2.imwrite('RealSense_Ped_Detect_' + str(count) + '.jpg', result_image)
 
-    time.sleep(0.2)
+        count += 1
+        time.sleep(0.1)
 
 except Exception as e:
     print(e)
