@@ -33,13 +33,21 @@ class PedestrianDetectionJetson:
             # print the pose results
             print("detected {:d} objects in image".format(len(poses)))
 
-            # for pose in poses:
-            #     print(pose)
-            #     print(pose.Keypoints)
-            #     print('Links', pose.Links)
+            for pose in poses:
+                print(pose)
+                print(pose.Keypoints)
+                print('Links', pose.Links)
 
             return_img = jetson.utils.cudaToNumpy(cuda_img)
             print('FPS: ', self.net.GetNetworkFPS())
+            
+            links = [len(pose.Links) for pose in poses] 
+            print(poses[0])
+
+            if len(links) >= 1: 
+
+                final_pose_index = links.index(max(links))
+                final_pose = poses[final_pose_index]
 
             # print out performance info
             # self.net.PrintProfilerTimes()
